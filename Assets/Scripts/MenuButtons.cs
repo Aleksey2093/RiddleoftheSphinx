@@ -9,6 +9,12 @@ public class MenuButtons : MonoBehaviour {
     void Start ()
     {
         loadFilesQuests();
+        loadSettingsFile();
+    }
+
+    private void loadSettingsFile()
+    {
+        SettingsApplication.loadSettingFile();
     }
 
     /// <summary>
@@ -44,11 +50,6 @@ public class MenuButtons : MonoBehaviour {
 
     }
 
-    public void waafawfwa()
-    {
-        int i = 10;
-    }
-
     void OnGUI ()
     {
         int buttonwitdth = (int)(Screen.width * 2.0 / 3.0);
@@ -57,10 +58,9 @@ public class MenuButtons : MonoBehaviour {
             (float)(2.0 * Screen.height / 3.0 - buttonheaight / 2.0 - 1), buttonwitdth, buttonheaight);
         if (GUI.Button(buttonRect, "Начать игру"))
         {
-            Debug.Log("Load Game1 Scene");
+            Debug.Log("Load Game1 Scene start");
             SceneManager.LoadScene("Game1");
-            var res = GameObject.Find("Text1");
-            Debug.Log("Load Game1 end");
+            Debug.Log("Load Game1 Scene end");
         }
         buttonRect = new Rect((float)(Screen.width / 2.0 - buttonwitdth / 2.0),
             (float)(2.0 * Screen.height / 3.0 + buttonheaight / 2.0 + 1), buttonwitdth, buttonheaight);

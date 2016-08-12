@@ -1,20 +1,33 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class AnswerClick : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
-
-    void OnClick()
+    void Awake()
     {
+        Debug.Log(gameObject.name + " awake");
+        var button = gameObject.GetComponent<UnityEngine.UI.Button>();
+        if (button != null)
+            button.onClick.AddListener(buttonClickAnswer);
 
+    }
+
+    public void buttonClickAnswer()
+    {
+        Debug.Log(gameObject.name + " click");
+        var answer = gameObject.transform.GetComponentInChildren<UnityEngine.UI.Text>();
+        if (answer != null)
+        {
+            var text_qest_obj = GameObject.Find("TextQuest");
+            if (text_qest_obj != null)
+            {
+                var text = text_qest_obj.GetComponent<Text1Script>();
+                if (text != null)
+                {
+                    text.provAnswerClickButton(answer.text);
+                }
+            }
+        }
     }
 }

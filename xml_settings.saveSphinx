@@ -1,4 +1,8 @@
 <saveFileApplication>
-   <WIN>0</WIN>
-   <GAMEOVER>0</GAMEOVER>
+  <WIN>0</WIN>
+  <GAMEOVER>0</GAMEOVER>
+  <Quest>1</Quest>
+  <Quest>2</Quest>
+  <Quest>3</Quest>
+  <Quest>4</Quest>
 </saveFileApplication>

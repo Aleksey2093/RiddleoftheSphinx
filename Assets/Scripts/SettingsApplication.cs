@@ -5,18 +5,6 @@ using System;
 
 public class SettingsApplication : MonoBehaviour
 {
-
-    // Use this for initialization
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
     /// <summary>
     /// Победы
     /// </summary>
@@ -33,6 +21,8 @@ public class SettingsApplication : MonoBehaviour
     /// Указатель на то, что сейчас проиходит сохранение
     /// </summary>
     private static bool saveNow = false;
+
+    private static string absoluteUrlApplicationFileSetting;
 
     /// <summary>
     /// Создает новый файл настроек в папке с приложением, если его нет
@@ -86,11 +76,17 @@ public class SettingsApplication : MonoBehaviour
     /// <returns></returns>
     private static string getFileSettingsPath()
     {
-        string filepath = UnityEngine.Application.absoluteURL;
-        int len = System.IO.Path.GetFileName(filepath).Length;
-        filepath = filepath.Substring(0, filepath.Length - len);
-        filepath = System.IO.Path.Combine(filepath, "xml_settings.saveSphinx");
-        return filepath;
+        if (absoluteUrlApplicationFileSetting == null || absoluteUrlApplicationFileSetting.Length == 0)
+        {
+            string filepath = Application.absoluteURL;
+            int len = System.IO.Path.GetFileName(filepath).Length;
+            filepath = filepath.Substring(0, filepath.Length - len);
+            filepath = System.IO.Path.Combine(filepath, "xml_settings.saveSphinx");
+            absoluteUrlApplicationFileSetting = filepath;
+            return filepath;
+        }
+        else
+            return absoluteUrlApplicationFileSetting;
     }
 
     /// <summary>
@@ -188,43 +184,54 @@ public class SettingsApplication : MonoBehaviour
     {
         System.Threading.Thread thread = new System.Threading.Thread(() =>
         {
-            while (saveNow == false)
-            {
-                System.Threading.Thread.Sleep(300);
-            }
-            if (saveNow == false)
-            {
-                saveNow = true;
-                System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-                string filepath = getFileSettingsPath();
-                if (createFile(filepath, win, game_over))
-                {
-                    int n = saveQuestNumberWin.Count;
-                    if (n > 0)
-                    {
-                        try
-                        {
-                            doc.Load(filepath);
-                            for (int i = 0; i < n; i++)
-                            {
-                                var element = doc.CreateElement("Quest");
-                                element.InnerText = saveQuestNumberWin[i].ToString();
-                                doc.DocumentElement.AppendChild(element);
-                            }
-                            doc.Save(filepath);
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.Log(ex.Message);
-                            saveNow = false;
-                        }
-                    }
-                }
-                saveNow = false;
-            }
+            Debug.Log("start Save");
+            saveFunc();
+            Debug.Log("end Save");
         });
         thread.Name = "Save settings application";
         thread.IsBackground = false;
         thread.Start();
+    }
+
+    private static void saveFunc()
+    {
+        Debug.Log("Save next while");
+        while (saveNow)
+        {
+            Debug.Log("Save sleep");
+            System.Threading.Thread.Sleep(300);
+            Debug.Log("Save up");
+        }
+        Debug.Log("Save end while " + saveNow.ToString());
+        if (saveNow == false)
+        {
+            saveNow = true;
+            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
+            string filepath = getFileSettingsPath();
+            if (createFile(filepath, win, game_over))
+            {
+                int n = saveQuestNumberWin.Count;
+                if (n > 0)
+                {
+                    try
+                    {
+                        doc.Load(filepath);
+                        for (int i = 0; i < n; i++)
+                        {
+                            var element = doc.CreateElement("Quest");
+                            element.InnerText = saveQuestNumberWin[i].ToString();
+                            doc.DocumentElement.AppendChild(element);
+                        }
+                        doc.Save(filepath);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log(ex.Message);
+                        saveNow = false;
+                    }
+                }
+            }
+            saveNow = false;
+        }
     }
 }

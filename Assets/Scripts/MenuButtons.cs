@@ -47,7 +47,7 @@ public class MenuButtons : MonoBehaviour {
 
     void Update ()
     {
-
+        
     }
 
     void OnGUI ()

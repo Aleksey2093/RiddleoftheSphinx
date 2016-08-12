@@ -96,15 +96,20 @@ public class SettingsApplication : MonoBehaviour
     {
         string filepath = getFileSettingsPath();
         var doc = new System.Xml.XmlDocument();
+        System.IO.FileStream fs;
         try
         {
-            doc.Load(filepath);
+            fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+            doc.Load(fs);
         }
         catch (Exception ex)
         {
             Debug.Log(ex.ToString());
             if (createFile(filepath))
-                doc.Load(filepath);
+            {
+                fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+                doc.Load(fs);
+            }
         }
         bool win = false, game_over = false;
         saveQuestNumberWin = new List<int>();
@@ -182,32 +187,32 @@ public class SettingsApplication : MonoBehaviour
     /// </summary>
     public static void Save()
     {
-        System.Threading.Thread thread = new System.Threading.Thread(() =>
-        {
+/*        System.Threading.Thread thread = new System.Threading.Thread(() =>
+        {*/
             Debug.Log("start Save");
             saveFunc();
             Debug.Log("end Save");
-        });
+/*        });
         thread.Name = "Save settings application";
         thread.IsBackground = false;
-        thread.Start();
+        thread.Start(null);*/
     }
 
     private static void saveFunc()
     {
         Debug.Log("Save next while");
-        while (saveNow)
+        /*while (saveNow)
         {
             Debug.Log("Save sleep");
-            System.Threading.Thread.Sleep(300);
             Debug.Log("Save up");
-        }
+        }*/
         Debug.Log("Save end while " + saveNow.ToString());
         if (saveNow == false)
         {
             saveNow = true;
             System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
             string filepath = getFileSettingsPath();
+            System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
             if (createFile(filepath, win, game_over))
             {
                 int n = saveQuestNumberWin.Count;
@@ -215,14 +220,15 @@ public class SettingsApplication : MonoBehaviour
                 {
                     try
                     {
-                        doc.Load(filepath);
+                        doc.Load(fs);
                         for (int i = 0; i < n; i++)
                         {
                             var element = doc.CreateElement("Quest");
                             element.InnerText = saveQuestNumberWin[i].ToString();
                             doc.DocumentElement.AppendChild(element);
                         }
-                        doc.Save(filepath);
+                        fs.Position = 0;
+                        doc.Save(fs);
                     }
                     catch (Exception ex)
                     {

@@ -13,11 +13,14 @@ public class AnswerClick : MonoBehaviour {
 
     }
 
+    /// <summary>
+    /// Событие, которое произойдет при нажатие на кнопку
+    /// </summary>
     public void buttonClickAnswer()
     {
         Debug.Log(gameObject.name + " click");
         var answer = gameObject.transform.GetComponentInChildren<UnityEngine.UI.Text>();
-        if (answer != null)
+        if (answer != null && answer.text != null && answer.text.Length > 0)
         {
             var text_qest_obj = GameObject.Find("TextQuest");
             if (text_qest_obj != null)

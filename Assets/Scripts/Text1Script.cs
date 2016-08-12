@@ -35,7 +35,8 @@ public class Text1Script : MonoBehaviour {
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
             return;
         }
-        doc.Load(StaticInformation.filepath_xml_lvl);
+        System.IO.FileStream fs = new System.IO.FileStream(StaticInformation.filepath_xml_lvl, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+        doc.Load(fs);
         docLoaded();
     }
 

@@ -123,31 +123,56 @@ public class StaticInformation : MonoBehaviour {
         }
 
         /// <summary>
+        /// Указывает на то что файл в данный момент загружается
+        /// </summary>
+        private static bool loadDataFileNowFromSite_bool = false;
+
+        /// <summary>
+        /// Возвращает значение параметра указывающего на то выполняется ли в данный момент загрузка
+        /// </summary>
+        public static bool LoadDataFileNowFromSite_get
+        {
+            get { return loadDataFileNowFromSite_bool; }
+        }
+
+        /// <summary>
         /// Загружает данные из xml файла с сайта
         /// </summary>
         /// <returns></returns>
         public static bool loadDataFromFileFromSite()
         {
+            while(loadDataFileNowFromSite_bool)
+            {
+                Debug.Log("waitdownload");
+            }
+            loadDataFileNowFromSite_bool = true;
+            int restart = 0;
+            ret1:
             try
             {
                 string url = "http://2014.ucoz.org/file_c/game/unity/level.xml";
                 WWW w = new WWW(url);
                 while (w.isDone == false) { };
-                System.IO.MemoryStream ms = new System.IO.MemoryStream(w.bytes);
+                MemoryStream ms = new MemoryStream(w.bytes);
                 downloaddonelevels = false;
                 xmlParse(ms);
-                downloaddonelevels = true;
+                downloaddonelevels = true; loadDataFileNowFromSite_bool = false;
                 return true;
             }
-            catch (UnityEngine.UnityException ex)
+            catch (UnityException ex)
             {
                 Debug.Log(ex.Message);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.Log(ex.Message);
             }
-            downloaddonelevels = false;
+            if (restart < 5)
+            {
+                restart++;
+                goto ret1;
+            }
+            downloaddonelevels = false; loadDataFileNowFromSite_bool = false;
             return false;
         }
 

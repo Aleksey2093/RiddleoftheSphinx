@@ -13,41 +13,17 @@ public class Text1Script : MonoBehaviour {
     /// Правильный ответ на вопрос текущего уровня
     /// </summary>
     public string answer_true;
-    /// <summary>
-    /// Xml документ с вопросами
-    /// </summary>
-    public System.Xml.XmlDocument doc;
 
     void Awake()
     {
         nowlvl = 0;
         answer_true = null;
-        doc = new System.Xml.XmlDocument();
     }
 
     // Use this for initialization
     void Start()
     {
-        int len = System.IO.Path.GetTempPath().Length;
-        StartCoroutine(waitDownloadLevel(len));
-        if (StaticInformation.filepath_xml_lvl == null || StaticInformation.filepath_xml_lvl.Length < len)
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-            return;
-        }
-        System.IO.FileStream fs = new System.IO.FileStream(StaticInformation.filepath_xml_lvl, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-        doc.Load(fs);
-        docLoaded();
-    }
-
-    IEnumerator waitDownloadLevel(int len)
-    {
-        new WaitForSeconds(1);
-        while(StaticInformation.filepath_xml_lvl == null || StaticInformation.filepath_xml_lvl.Length < len)
-        {
-            yield return new WaitForSeconds(1);
-        }
-        yield return null;
+        nextLevel();
     }
 
     public void provAnswerClickButton(string answer)
@@ -55,7 +31,7 @@ public class Text1Script : MonoBehaviour {
         if (answer_true == answer)
         {
             SettingsApplication.addWin(nowlvl);
-            NextLevel();
+            nextLevel();
         }
         else
         {
@@ -63,89 +39,142 @@ public class Text1Script : MonoBehaviour {
         }
     }
 
-    void NextLevel()
+    void nextLevel()
     {
-        foreach (System.Xml.XmlNode nod in doc.DocumentElement)
+        int i = 0;
+        while(StaticInformation.downloaddonelevels == false)
         {
-            if (nod.Name == "lvl")
+            int res;
+            Math.DivRem(i, 100, out res);
+            if (res == 0)
             {
-                int lvl = int.Parse(nod.FirstChild.InnerText);
-                if (lvl > nowlvl && SettingsApplication.provObject(lvl) == false)
-                {
-                    nowlvl = lvl;
-                    var text = gameObject.GetComponent<Text>();
-                    text.text = nod.ChildNodes[1].InnerText;
-                    Button[] button = (Button[])FindObjectsOfType(typeof(Button));
-                    button = getSortButton(button);
-                    string[] answer = nod.ChildNodes[2].InnerText.Split(',');
-                    for (int i = 0; i < 4; i++)
-                    {
-                        button[i].transform.FindChild("Text").GetComponent<Text>().text = answer[i];
-                    }
-                    answer_true = nod.LastChild.InnerText;
-                    return;
-                }
+                if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get == false)
+                    if (StaticInformation.LevelXml.loadDataFromFileFromSite())
+                        break;
             }
+            else if (i > 1000)
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
+            }
+            i++;
         }
-        //Если дошли сюда то значит уровни закончились и это плохо
-        StopGameBesauseNotLvl();
+        var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl);
+        if (level_info != null)
+            setValueOnTextAndButtons(level_info);
+        else
+            stopGameBesauseNotLvl();
     }
 
     /// <summary>
     /// Тормозит игру потому, что уровни закончились
     /// </summary>
-    private void StopGameBesauseNotLvl()
+    private void stopGameBesauseNotLvl()
     {
-
-    }
-
-    private void docLoaded()
-    {
-        foreach(System.Xml.XmlNode nod in doc.DocumentElement)
+        Text textComponent;
+        Button[] buttons;
+        if (getObjectScene(out textComponent, out buttons))
         {
-            if (nod.Name == "lvl")
+            Destroy(textComponent);
+            for (int i = 0; i < buttons.Length; i++)
+                Destroy(buttons[i]);
+            Canvas can = GameObject.Find("Canvas").GetComponent<Canvas>();
+            if (can != null)
             {
-                int lvl = int.Parse(nod.FirstChild.InnerText);
-                if (lvl > nowlvl && SettingsApplication.provObject(int.Parse(nod.FirstChild.InnerText)) == false)
+                if (UnityEditor.EditorUtility.DisplayDialog("Конец сезону",
+                    "Игровые уровни закончиились. Перейти в главное меню.", "Перейти", "Выйти из игры"))
                 {
-                    var text = gameObject.GetComponent<Text>();
-                    nowlvl = lvl;
-                    if (text == null) { Debug.Log("text == null is true"); }
-                    text.text = nod.ChildNodes[1].InnerText;
-                    Button[] button = (Button[])FindObjectsOfType(typeof(Button));
-                    button = getSortButton(button);
-                    string[] answer = nod.ChildNodes[2].InnerText.Split(',');
-                    for (int i=0;i<4;i++)
-                    {
-                        button[i].transform.FindChild("Text").GetComponent<Text>().text = answer[i];
-                    }
-                    answer_true = nod.LastChild.InnerText;
-                    break;
+                    UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
+                    SettingsApplication.Save();
+                }
+                else
+                {
+                    Application.Quit();
                 }
             }
         }
     }
 
-    private Button[] getSortButton(Button[] button)
+    /// <summary>
+    /// Возвращает корректность получения объектов со сцены. Try - все получили - False нифига не получили
+    /// </summary>
+    /// <param name="textComponent">Текстовый объекток содержащий текст вопроса</param>
+    /// <param name="buttons">Кпноки</param>
+    /// <returns></returns>
+    private bool getObjectScene(out Text textComponent, out Button[] buttons)
     {
-        int len = button.Length, lenminus = len - 1;
+        textComponent = GameObject.Find("TextQuest").GetComponent<Text>();
+        buttons = FindObjectsOfType<Button>();
+        if (textComponent != null)
+        {
+            if (buttons != null)
+            {
+                buttons = getSortButton(buttons);
+                if (buttons.Length == 4)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Устанавливает значение объектов сцены
+    /// </summary>
+    /// <param name="level_info">Информация об уровне</param>
+    private void setValueOnTextAndButtons(StaticInformation.LevelXml.LevelInformation level_info)
+    {
+        Text text_quest;
+        Button[] buttons;
+        if (getObjectScene(out text_quest, out buttons))
+        {
+            text_quest.text = level_info.QuestLevel;
+            for (int i = 0; i < 4; i++)
+                buttons[i].transform.FindChild("Text").GetComponent<Text>().text = level_info.AllAnswerLevel[i];
+            answer_true = level_info.True_answerLevel;
+            nowlvl = level_info.NumberLevel;
+        }
+        else
+            Debug.Log("Error in setValue.... Text1Script");
+    }
+
+    /// <summary>
+    /// Сортирует кнопки в массиве по цифре в конце названия кнопки
+    /// </summary>
+    /// <param name="buttons">Массив кнопок</param>
+    /// <returns></returns>
+    private Button[] getSortButton(Button[] buttons)
+    {
+        System.Collections.Generic.List<Button> list = new System.Collections.Generic.List<Button>(buttons);
+        int len = list.Count, lenminus = len - 1;
         for (int i=0;i<lenminus;i++)
         {
+            ret1:
             for (int j=i+1;j<len;j++)
             {
-                string name1 = button[i].name[button[i].name.Length - 1].ToString();
-                int c1 = int.Parse(name1);
-                string name2 = button[j].name[button[j].name.Length - 1].ToString();
-                int c2 = int.Parse(name2);
-                if (c2 < c1)
+                ret2:
+                string name1 = list[i].name[list[i].name.Length - 1].ToString(),
+                    name2 = list[j].name[list[j].name.Length - 1].ToString();
+                try
                 {
-                    var tmp = button[i];
-                    button[i] = button[j];
-                    button[j] = tmp; 
+                    int c1, c2;
+                    if (int.TryParse(name1, out c1) == false)
+                    {
+                        list.RemoveAt(i); goto ret1;
+                    }
+                    else if (int.TryParse(name2, out c2) == false)
+                    {
+                        list.RemoveAt(j); goto ret2;
+                    }
+                    else if (c2 < c1)
+                    {
+                        var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
+                    }
+                }
+                catch {
+                    Debug.Log("Error buttons answer sort");
                 }
             }
         }
-        return button;
+        return list.ToArray();
     }
 
     // Update is called once per frame

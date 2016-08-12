@@ -10,7 +10,6 @@ public class AnswerClick : MonoBehaviour {
         var button = gameObject.GetComponent<UnityEngine.UI.Button>();
         if (button != null)
             button.onClick.AddListener(buttonClickAnswer);
-
     }
 
     /// <summary>

@@ -12,8 +12,8 @@ public class MenuButtons : MonoBehaviour {
 
     void Start ()
     {
-        loadFilesQuests();
         loadSettingsFile();
+        loadFilesQuestsFromNet();
     }
 
     /// <summary>
@@ -27,7 +27,7 @@ public class MenuButtons : MonoBehaviour {
     /// <summary>
     /// Загрузка файлов с вопросами и ответами с сервера разработчика.
     /// </summary>
-    private void loadFilesQuests()
+    private void loadFilesQuestsFromNet()
     {
         StaticInformation.LevelXml.loadDataFromFileFromSite();
     }
@@ -40,17 +40,17 @@ public class MenuButtons : MonoBehaviour {
     void OnGUI ()
     {
         int buttonwitdth = (int)(Screen.width * 2.0 / 3.0);
-        int buttonheaight = (int)(30);
+        int buttonheight = (int)(30);
         Rect buttonRect = new Rect((float)(Screen.width / 2.0 - buttonwitdth / 2.0),
-            (float)(2.0 * Screen.height / 3.0 - buttonheaight / 2.0), buttonwitdth, buttonheaight);
+            (float)(Screen.height - 2 * buttonheight - buttonheight / 2), buttonwitdth, buttonheight);
         if (GUI.Button(buttonRect, "Начать игру"))
         {
             Debug.Log("Load Game1 Scene start");
-            SceneManager.LoadScene("Game1");
+            SceneManager.LoadSceneAsync("Game1");
             Debug.Log("Load Game1 Scene end");
         }
         buttonRect = new Rect((float)(Screen.width / 2.0 - buttonwitdth / 2.0),
-            (float)(2.0 * Screen.height / 3.0 + buttonheaight / 2.0), buttonwitdth, buttonheaight);
+            (float)(Screen.height - buttonheight - buttonheight / 2), buttonwitdth, buttonheight);
         if (GUI.Button(buttonRect, "Выход"))
         {
             Application.Quit();

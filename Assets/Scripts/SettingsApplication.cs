@@ -49,25 +49,68 @@ public class SettingsApplication : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Debug.Log(ex.ToString());
+            Debug.Log(ex.Message);
         }
         try
         {
-            System.IO.File.WriteAllLines(filepath,
-                new string[]
+            var line = new object[]
                 {
                         "<saveFileApplication>",
                         string.Format("   <WIN>{0}</WIN>", win),
                         string.Format("   <GAMEOVER>{0}</GAMEOVER>", game_over),
                         "</saveFileApplication>"
-                });
+                };
+            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
+            string one_line = string.Format("{0}\n{1}\n{2}\n{3}", line);
+            Debug.Log("one line create");
+            doc.LoadXml(one_line);
+            Debug.Log("doc create loaded");
+            System.IO.Stream stream = new System.IO.MemoryStream();
+            doc.Save(stream);
+            Debug.Log("save doc create to stream");
+            stream = getStreamReverse(stream);
+            System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+            int byteint = stream.ReadByte();
+            while(byteint != -1)
+            {
+                byte bit = (byte)byteint;
+                fs.WriteByte(bit);
+                byteint = stream.ReadByte();
+            }
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+            stream.Close();
+            fs.Close();
+#endif
+            stream.Dispose();
+            fs.Dispose();
+            Debug.Log("return true");
             return true;
         }
         catch (Exception ex)
         {
-            Debug.Log(ex.ToString());
+            Debug.Log(ex.Message);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Разворачивает поток байт в потоке
+    /// </summary>
+    /// <param name="stream_original">поток</param>
+    /// <returns></returns>
+    private static System.IO.Stream getStreamReverse(System.IO.Stream stream_original)
+    {
+        List<byte> array_byte = new List<byte>();
+        stream_original.Position = 0;
+        int int_byte = stream_original.ReadByte();
+        while (int_byte != -1)
+        {
+            byte bit = (byte)int_byte;
+            array_byte.Add(bit);
+            int_byte = stream_original.ReadByte();
+        }
+        array_byte.Reverse();
+        return new System.IO.MemoryStream(array_byte.ToArray());
     }
 
     /// <summary>
@@ -95,20 +138,28 @@ public class SettingsApplication : MonoBehaviour
     public static void loadSettingFile()
     {
         string filepath = getFileSettingsPath();
+        int restart_cout = 0;
         var doc = new System.Xml.XmlDocument();
-        System.IO.FileStream fs;
-        try
+        while (restart_cout < 100)
         {
-            fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-            doc.Load(fs);
-        }
-        catch (Exception ex)
-        {
-            Debug.Log(ex.ToString());
-            if (createFile(filepath))
+            try
             {
-                fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-                doc.Load(fs);
+                System.IO.Stream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
+                System.IO.Stream stream = getStreamReverse(fs);
+                doc.Load(stream);
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                fs.Close();
+                stream.Close();
+#endif
+                fs.Dispose();
+                stream.Dispose();
+                break;
+            }
+            catch (Exception ex)
+            {
+                Debug.Log(ex.Message);
+                if (createFile(filepath) == false)
+                    restart_cout++;
             }
         }
         bool win = false, game_over = false;
@@ -122,11 +173,11 @@ public class SettingsApplication : MonoBehaviour
             }
             else if (win == false && node.Name == "WIN")
             {
-                win = true;
+                win = true; SettingsApplication.win = int.Parse(node.InnerText);
             }
             else if (game_over == false && node.Name == "GAMEOVER")
             {
-                game_over = true;
+                game_over = true; SettingsApplication.game_over = int.Parse(node.InnerText);
             }
         }
     }
@@ -134,17 +185,17 @@ public class SettingsApplication : MonoBehaviour
     /// <summary>
     /// Возвращает количество побед пользователя
     /// </summary>
-    public static int Win
+    public static int Win()
     {
-        get { return win; }
+        return win;
     }
 
     /// <summary>
     /// Возвращает количество поражений пользователя
     /// </summary>
-    public static int Game_Over
+    public static int Game_Over()
     {
-        get { return game_over; }
+        return game_over;
     }
 
     /// <summary>
@@ -154,10 +205,30 @@ public class SettingsApplication : MonoBehaviour
     /// <returns></returns>
     public static bool provObject(int value)
     {
-        int len = saveQuestNumberWin.Count;
-        for (int i = 0; i < len; i++)
-            if (saveQuestNumberWin[i] == value)
-                return true;
+        bool restart = true;
+        ret1:
+        try
+        {
+            int len = saveQuestNumberWin.Count;
+            for (int i = 0; i < len; i++)
+                if (saveQuestNumberWin[i] == value)
+                    return true;
+        }
+        catch(Exception ex)
+        {
+            if (saveQuestNumberWin == null || saveQuestNumberWin.Count == 0)
+            {
+                Debug.Log("Ошибка программы файл настроек не загружен" + ex.Message);
+                loadSettingFile();
+            }
+            else
+                Debug.Log("Не обработнная ошибка программы");
+            if (restart)
+            {
+                restart = false;
+                goto ret1;
+            }
+        }
         return false;
     }
 
@@ -201,39 +272,51 @@ public class SettingsApplication : MonoBehaviour
     private static void saveFunc()
     {
         Debug.Log("Save next while");
-        /*while (saveNow)
+        while (saveNow)
         {
-            Debug.Log("Save sleep");
-            Debug.Log("Save up");
-        }*/
+            Debug.Log("Save while");
+        }
         Debug.Log("Save end while " + saveNow.ToString());
         if (saveNow == false)
         {
             saveNow = true;
             System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
             string filepath = getFileSettingsPath();
-            System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
             if (createFile(filepath, win, game_over))
             {
+                System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
                 int n = saveQuestNumberWin.Count;
                 if (n > 0)
                 {
                     try
                     {
-                        doc.Load(fs);
+                        System.IO.Stream stream = getStreamReverse(fs);
+                        doc.Load(stream);
                         for (int i = 0; i < n; i++)
                         {
                             var element = doc.CreateElement("Quest");
                             element.InnerText = saveQuestNumberWin[i].ToString();
                             doc.DocumentElement.AppendChild(element);
                         }
-                        fs.Position = 0;
-                        doc.Save(fs);
+                        doc.Save(stream);
+                        stream = getStreamReverse(stream);
+                        fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+                        int b1 = stream.ReadByte();
+                        while(b1 != -1)
+                        {
+                            byte bit = (byte)b1;
+                            fs.WriteByte(bit);
+                        }
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                        fs.Close();
+                        stream.Close();
+#endif
+                        stream.Dispose();
+                        fs.Dispose();
                     }
                     catch (Exception ex)
                     {
                         Debug.Log(ex.Message);
-                        saveNow = false;
                     }
                 }
             }

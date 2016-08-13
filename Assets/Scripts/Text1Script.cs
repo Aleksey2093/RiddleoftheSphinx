@@ -48,9 +48,13 @@ public class Text1Script : MonoBehaviour {
             Math.DivRem(i, 100, out res);
             if (res == 0)
             {
-                if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get == false)
+                if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
+                {
                     if (StaticInformation.LevelXml.loadDataFromFileFromSite())
+                    {
                         break;
+                    }
+                }
             }
             else if (i > 1000)
             {
@@ -70,27 +74,31 @@ public class Text1Script : MonoBehaviour {
     /// </summary>
     private void stopGameBesauseNotLvl()
     {
-        Text textComponent;
-        Button[] buttons;
-        if (getObjectScene(out textComponent, out buttons))
+#if UNITY_EDITOR
+        if (UnityEditor.EditorUtility.DisplayDialog("Вопрос","Уровни законичлись. Ждите новые уровни".ToString(),
+            "Главное меню".ToString(),"Выход".ToString()))
+            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
+        else
+            Application.Quit();
+#else
+        windowRect = GUI.ModalWindow(0, windowRect, DialogWindow, "Конец");
+#endif
+    }
+
+    Rect windowRect = new Rect((Screen.width - 200) / 2, (Screen.height - 300) / 2, 200, 300);
+
+    private void DialogWindow(int windowID)
+    {
+        float y = 20;
+        GUI.Label(new Rect(5, y, windowRect.width, 20), "Уровни закончились. Ждите новые уровни.".ToString());
+
+        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Главное меню".ToString()))
         {
-            Destroy(textComponent);
-            for (int i = 0; i < buttons.Length; i++)
-                Destroy(buttons[i]);
-            Canvas can = GameObject.Find("Canvas").GetComponent<Canvas>();
-            if (can != null)
-            {
-                if (UnityEditor.EditorUtility.DisplayDialog("Конец сезону",
-                    "Игровые уровни закончиились. Перейти в главное меню.", "Перейти", "Выйти из игры"))
-                {
-                    UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-                    SettingsApplication.Save();
-                }
-                else
-                {
-                    Application.Quit();
-                }
-            }
+            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
+        }
+        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Выход".ToString()))
+        {
+            Application.Quit();
         }
     }
 

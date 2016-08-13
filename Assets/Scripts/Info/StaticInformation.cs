@@ -130,9 +130,9 @@ public class StaticInformation : MonoBehaviour {
         /// <summary>
         /// Возвращает значение параметра указывающего на то выполняется ли в данный момент загрузка
         /// </summary>
-        public static bool LoadDataFileNowFromSite_get
+        public static bool LoadDataFileNowFromSite_get()
         {
-            get { return loadDataFileNowFromSite_bool; }
+            return loadDataFileNowFromSite_bool;
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ public class StaticInformation : MonoBehaviour {
         {
             while(loadDataFileNowFromSite_bool)
             {
-                Debug.Log("waitdownload");
+                Debug.Log("wait download file level");
             }
             loadDataFileNowFromSite_bool = true;
             int restart = 0;

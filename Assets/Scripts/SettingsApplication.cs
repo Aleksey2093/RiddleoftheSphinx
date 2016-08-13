@@ -21,8 +21,24 @@ public class SettingsApplication : MonoBehaviour
     /// Указатель на то, что сейчас проиходит сохранение
     /// </summary>
     private static bool saveNow = false;
-
+    /// <summary>
+    /// Путь к файлу к настройками
+    /// </summary>
     private static string absoluteUrlApplicationFileSetting;
+
+    /// <summary>
+    /// Настройки загружены
+    /// </summary>
+    private static bool loadSetting = false;
+
+    /// <summary>
+    /// Возвращает статус загрузки файла настроек
+    /// </summary>
+    /// <returns>true - настройки загружены, false - не загружеы или еще загружаются</returns>
+    public static bool get_loadSetting()
+    {
+        return loadSetting;
+    }
 
     /// <summary>
     /// Создает новый файл настроек в папке с приложением, если его нет
@@ -70,13 +86,7 @@ public class SettingsApplication : MonoBehaviour
             Debug.Log("save doc create to stream");
             stream = getStreamReverse(stream);
             System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
-            int byteint = stream.ReadByte();
-            while(byteint != -1)
-            {
-                byte bit = (byte)byteint;
-                fs.WriteByte(bit);
-                byteint = stream.ReadByte();
-            }
+            FileStreamWriteFromOtherStreamData(fs, stream);
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             stream.Close();
             fs.Close();
@@ -91,6 +101,25 @@ public class SettingsApplication : MonoBehaviour
             Debug.Log(ex.Message);
             return false;
         }
+    }
+
+    /// <summary>
+    /// Записывает поток байт из одного потока в другой
+    /// </summary>
+    /// <param name="result"></param>
+    /// <param name="stream"></param>
+    private static System.IO.FileStream FileStreamWriteFromOtherStreamData(System.IO.FileStream result, System.IO.Stream stream)
+    {
+        if (result.Position > 0)
+            result.Position = 0;
+        int byteint = stream.ReadByte();
+        while (byteint != -1)
+        {
+            byte bit = (byte)byteint;
+            result.WriteByte(bit);
+            byteint = stream.ReadByte();
+        }
+        return result;
     }
 
     /// <summary>
@@ -137,6 +166,7 @@ public class SettingsApplication : MonoBehaviour
     /// </summary>
     public static void loadSettingFile()
     {
+        loadSetting = false;
         string filepath = getFileSettingsPath();
         int restart_cout = 0;
         var doc = new System.Xml.XmlDocument();
@@ -180,6 +210,7 @@ public class SettingsApplication : MonoBehaviour
                 game_over = true; SettingsApplication.game_over = int.Parse(node.InnerText);
             }
         }
+        loadSetting = true;
     }
 
     /// <summary>
@@ -284,12 +315,12 @@ public class SettingsApplication : MonoBehaviour
             string filepath = getFileSettingsPath();
             if (createFile(filepath, win, game_over))
             {
-                System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
                 int n = saveQuestNumberWin.Count;
                 if (n > 0)
                 {
                     try
                     {
+                        System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
                         System.IO.Stream stream = getStreamReverse(fs);
                         doc.Load(stream);
                         for (int i = 0; i < n; i++)
@@ -298,15 +329,15 @@ public class SettingsApplication : MonoBehaviour
                             element.InnerText = saveQuestNumberWin[i].ToString();
                             doc.DocumentElement.AppendChild(element);
                         }
+                        stream = new System.IO.MemoryStream();
                         doc.Save(stream);
                         stream = getStreamReverse(stream);
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                        fs.Close();
+#endif                        
+                        fs.Dispose();
                         fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
-                        int b1 = stream.ReadByte();
-                        while(b1 != -1)
-                        {
-                            byte bit = (byte)b1;
-                            fs.WriteByte(bit);
-                        }
+                        FileStreamWriteFromOtherStreamData(fs, stream);
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
                         fs.Close();
                         stream.Close();

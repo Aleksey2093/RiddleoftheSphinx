@@ -21,7 +21,7 @@ public class AnswerClick : MonoBehaviour {
         var answer = gameObject.transform.GetComponentInChildren<UnityEngine.UI.Text>();
         if (answer != null && answer.text != null && answer.text.Length > 0)
         {
-            var text_qest_obj = GameObject.Find("TextQuest");
+            var text_qest_obj = GameObject.Find("Scripts");
             if (text_qest_obj != null)
             {
                 var text = text_qest_obj.GetComponent<Text1Script>();

@@ -63,10 +63,22 @@ public class Text1Script : MonoBehaviour {
             i++;
         }
         var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl);
-        if (level_info != null)
+        /*if (level_info != null)
             setValueOnTextAndButtons(level_info);
         else
-            stopGameBesauseNotLvl();
+            stopGameBesauseNotLvl();*/
+        switch (level_info.get_Message())
+        {
+            case StaticInformation.LevelXml.Reslvl.Ok:
+                setValueOnTextAndButtons(level_info.get_Info());
+                break;
+            case StaticInformation.LevelXml.Reslvl.No_Lvl:
+                break;
+            case StaticInformation.LevelXml.Reslvl.End_lvl:
+                break;
+            default:
+                break;
+        }
     }
 
     /// <summary>
@@ -74,15 +86,7 @@ public class Text1Script : MonoBehaviour {
     /// </summary>
     private void stopGameBesauseNotLvl()
     {
-#if UNITY_EDITOR
-        if (UnityEditor.EditorUtility.DisplayDialog("Вопрос","Уровни законичлись. Ждите новые уровни".ToString(),
-            "Главное меню".ToString(),"Выход".ToString()))
-            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-        else
-            Application.Quit();
-#else
         windowRect = GUI.ModalWindow(0, windowRect, DialogWindow, "Конец");
-#endif
     }
 
     Rect windowRect = new Rect((Screen.width - 200) / 2, (Screen.height - 300) / 2, 200, 300);
@@ -91,7 +95,6 @@ public class Text1Script : MonoBehaviour {
     {
         float y = 20;
         GUI.Label(new Rect(5, y, windowRect.width, 20), "Уровни закончились. Ждите новые уровни.".ToString());
-
         if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Главное меню".ToString()))
         {
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");

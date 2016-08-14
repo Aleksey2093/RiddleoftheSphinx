@@ -89,37 +89,90 @@ public class StaticInformation : MonoBehaviour {
         }
 
         /// <summary>
+        /// Вариант ответа на запрос следующего уровня
+        /// </summary>
+        public enum Reslvl { Ok, No_Lvl, End_lvl };
+
+        /// <summary>
+        /// Класс ответа следующего уровня
+        /// </summary>
+        public struct ResultNextLevel
+        {
+            private Reslvl message;
+            private LevelInformation info;
+            /// <summary>
+            /// Создает новый экземпляр класса с результатми ответа на счет следующего уровня от класса информации о уровнях игры
+            /// </summary>
+            /// <param name="message">Ответное сообщение</param>
+            /// <param name="info">Информация</param>
+            public ResultNextLevel(Reslvl message, LevelInformation info)
+            {
+                this.message = message;
+                this.info = info;
+            }
+
+            /// <summary>
+            /// Получить ответ
+            /// </summary>
+            /// <returns></returns>
+            public Reslvl get_Message()
+            {
+                return message;
+            }
+
+            /// <summary>
+            /// Получить результат
+            /// </summary>
+            /// <returns></returns>
+            public LevelInformation get_Info()
+            {
+                return info;
+            }
+        }
+
+        /// <summary>
         /// Возвращает следующий уровень для игры
         /// </summary>
         /// <param name="nowlvl">Номер текущего уровня</param>
         /// <returns>LevelInformation с информацией о новом уровне</returns>
-        public static LevelInformation getNextLevel(int nowlvl)
+        public static ResultNextLevel getNextLevel(int nowlvl)
         {
-            Func<int, int, LevelInformation> getLevel = (start, end) =>
+            Func<int, int, ResultNextLevel> getLevel = (start, end) =>
             {
                 for (int i = start; i < end; i++)
                     if (SettingsApplication.provObject(numbers[i]) == false)
                     {
-                        return new LevelInformation(numbers[i], questings[i], answers[i], true_answers[i]);
+                        var lvl = new LevelInformation(numbers[i], questings[i], answers[i], true_answers[i]);
+                        return new ResultNextLevel(Reslvl.Ok, lvl);
                     }
-                return null;
+                return new ResultNextLevel(Reslvl.No_Lvl, null);
             };
-            bool restart_metod = true;
-            ret1:
-            int index = numbers.FindIndex(x => x == nowlvl), count = numbers.Count;
-            LevelInformation level = getLevel(index + 1, count);
-            if (level != null) return level;
-            //если дошли сюда значит в следующих уровней нет и нужно вернуть один из уровней до текущего
-            level = getLevel(0, index);
-            //Хотя можем сделать ход конем и загрузить еще раз файл с сайта и так грузим
-            if (restart_metod)
+            for (int i = 0; i < 2; i++)
             {
+                int index = numbers.FindIndex(x => x == nowlvl), count = numbers.Count;
+                var level = getLevel(index + 1, count);
+                if (level.get_Message() == Reslvl.Ok) return level;
+                //если дошли сюда значит в следующих уровней нет и нужно вернуть один из уровней до текущего
+                level = getLevel(0, index);
+                if (level.get_Message() == Reslvl.Ok) return level;
+                //Хотя можем сделать ход конем и загрузить еще раз файл с сайта и так грузим
                 loadDataFromFileFromSite();
-                restart_metod = false;
-                goto ret1;
             }
             //Если дошли сюда значит уровней вообще не осталось и мы должны сообщить об этом пользователю возвращаем null, остальное делает вызывающий метод (он один на текущий момент)
-            return null;
+            /*Для начало мы должны уточнить, а если ли у нас вообще уровни для игры даже после повторной загружки? 
+             * Может их вообще не было, нужно проверить, чтобы игрок не получил ложную информацию об уровнях игры*/
+            if (numbers == null || numbers.Count == 0 || questings == null || questings.Count == 0
+                || answers == null || answers.Count == 0 || true_answers == null || true_answers.Count == 0)
+            {
+                /*Если попали сюда то у нас серьезные проблемы потому, что уровней для игры у нас нет и поэтомы мы никаким образом не
+                 сможем выдавать пользователю уровни, чтобы он играл*/
+                return new ResultNextLevel(Reslvl.No_Lvl,null);
+            }
+            else
+            {
+                /*Если попали сюда то у нас закончились уровни, которые мы не прошли*/
+                return new ResultNextLevel(Reslvl.End_lvl, null);
+            }
         }
 
         /// <summary>

@@ -289,15 +289,9 @@ public class SettingsApplication : MonoBehaviour
     /// </summary>
     public static void Save()
     {
-/*        System.Threading.Thread thread = new System.Threading.Thread(() =>
-        {*/
-            Debug.Log("start Save");
-            saveFunc();
-            Debug.Log("end Save");
-/*        });
-        thread.Name = "Save settings application";
-        thread.IsBackground = false;
-        thread.Start(null);*/
+        Debug.Log("start Save");
+        saveFunc();
+        Debug.Log("end Save");
     }
 
     private static void saveFunc()

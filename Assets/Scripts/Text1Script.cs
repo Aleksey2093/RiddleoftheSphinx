@@ -41,11 +41,11 @@ public class Text1Script : MonoBehaviour {
 
     void nextLevel()
     {
-        int i = 0;
+        double i = 0;
         while(StaticInformation.downloaddonelevels == false)
         {
-            int res;
-            Math.DivRem(i, 100, out res);
+            double res;
+            res = i % 100;
             if (res == 0)
             {
                 if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
@@ -56,7 +56,7 @@ public class Text1Script : MonoBehaviour {
                     }
                 }
             }
-            else if (i > 1000)
+            else if (i > 1000 && StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
             {
                 UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
             }
@@ -73,35 +73,21 @@ public class Text1Script : MonoBehaviour {
                 setValueOnTextAndButtons(level_info.get_Info());
                 break;
             case StaticInformation.LevelXml.Reslvl.No_Lvl:
+                {
+                    var a1 = GameObject.Find("Scripts").GetComponent<InformationScreen>();
+                    if (a1 != null)
+                        a1.SetValue_ResLvl(StaticInformation.LevelXml.Reslvl.No_Lvl);
+                }
                 break;
             case StaticInformation.LevelXml.Reslvl.End_lvl:
+                {
+                    var a1 = GameObject.Find("Scripts").GetComponent<InformationScreen>();
+                    if (a1 != null)
+                        a1.SetValue_ResLvl(StaticInformation.LevelXml.Reslvl.End_lvl);
+                }
                 break;
             default:
                 break;
-        }
-    }
-
-    /// <summary>
-    /// Тормозит игру потому, что уровни закончились
-    /// </summary>
-    private void stopGameBesauseNotLvl()
-    {
-        windowRect = GUI.ModalWindow(0, windowRect, DialogWindow, "Конец");
-    }
-
-    Rect windowRect = new Rect((Screen.width - 200) / 2, (Screen.height - 300) / 2, 200, 300);
-
-    private void DialogWindow(int windowID)
-    {
-        float y = 20;
-        GUI.Label(new Rect(5, y, windowRect.width, 20), "Уровни закончились. Ждите новые уровни.".ToString());
-        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Главное меню".ToString()))
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-        }
-        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Выход".ToString()))
-        {
-            Application.Quit();
         }
     }
 

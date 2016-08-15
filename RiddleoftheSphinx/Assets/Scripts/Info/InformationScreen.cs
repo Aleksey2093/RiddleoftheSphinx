@@ -41,6 +41,7 @@ public class InformationScreen : MonoBehaviour {
     /// </summary>
     private void stopGameBesuseNotLevelCoutNull()
     {
+        windowRect = getPositionDialogWindow();
         windowRect = GUI.ModalWindow(0, windowRect, DialogWindow, "Упс");
     }
 
@@ -49,27 +50,34 @@ public class InformationScreen : MonoBehaviour {
     /// </summary>
     private void stopGameBesauseEndLvl()
     {
+        windowRect = getPositionDialogWindow();
         windowRect = GUI.ModalWindow(1, windowRect, DialogWindow, "Конец");
     }
 
-    Rect windowRect = new Rect((float)(Screen.width / 3.0), (Screen.height - 300) / 2, (float)(Screen.width / 3.0), 300);
+    private Rect getPositionDialogWindow()
+    {
+       return new Rect((float)(Screen.width / 5.0), (float)(Screen.height / 5.0), 
+           (float)(Screen.width * 3.0 / 4.0), (float)(Screen.height * 3.0 / 4.0));
+    }
 
+    Rect windowRect;
+ 
     private void DialogWindow(int windowID)
     {
         string label_text = (windowID == 1) ? "Уровни закончились. Ждите новые уровни." :
             "Проблема с загрузкой уровней.";
         float y = 20;
-        GUI.Label(new Rect(5, y, windowRect.width, 20), label_text);
+        var label_style = GUI.skin.label;
+        label_style.alignment = TextAnchor.MiddleCenter;
+        GUI.Label(new Rect(5, y, windowRect.width, 20), label_text, label_style);
         y += 21;
-        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Главное меню".ToString()))
-        {
+        var button_style = GUI.skin.button;
+        button_style.alignment = TextAnchor.MiddleCenter;
+        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Главное меню".ToString(), button_style))
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-        }
         y += 21;
-        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Выход".ToString()))
-        {
+        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Выход".ToString(), button_style))
             Application.Quit();
-        }
     }
 
     void OnGUI()

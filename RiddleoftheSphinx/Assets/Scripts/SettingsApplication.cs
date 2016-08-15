@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.IO;
 
 public class SettingsApplication : MonoBehaviour
 {
@@ -69,7 +70,7 @@ public class SettingsApplication : MonoBehaviour
         }
         try
         {
-            var line = new object[]
+            /*var line = new object[]
                 {
                         "<saveFileApplication>",
                         string.Format("   <WIN>{0}</WIN>", win),
@@ -80,10 +81,18 @@ public class SettingsApplication : MonoBehaviour
             string one_line = string.Format("{0}\n{1}\n{2}\n{3}", line);
             Debug.Log("one line create");
             doc.LoadXml(one_line);
-            Debug.Log("doc create loaded");
+            Debug.Log("doc create loaded");*/
+
             System.IO.Stream stream = new System.IO.MemoryStream();
-            doc.Save(stream);
-            Debug.Log("save doc create to stream");
+
+            var mass_tmp = BitConverter.GetBytes(win);
+            stream.Write(mass_tmp,0,mass_tmp.Length);
+
+            mass_tmp = BitConverter.GetBytes(game_over);
+            stream.Write(mass_tmp,0,mass_tmp.Length);
+
+            /*doc.Save(stream);
+            Debug.Log("save doc create to stream");*/
             stream = getStreamReverse(stream);
             System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
             FileStreamWriteFromOtherStreamData(fs, stream);
@@ -169,14 +178,13 @@ public class SettingsApplication : MonoBehaviour
         loadSetting = false;
         string filepath = getFileSettingsPath();
         int restart_cout = 0;
-        var doc = new System.Xml.XmlDocument();
         while (restart_cout < 100)
         {
             try
             {
                 System.IO.Stream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
                 System.IO.Stream stream = getStreamReverse(fs);
-                doc.Load(stream);
+                streamParse(stream);
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
                 fs.Close();
                 stream.Close();
@@ -192,9 +200,8 @@ public class SettingsApplication : MonoBehaviour
                     restart_cout++;
             }
         }
-        bool win = false, game_over = false;
-        saveQuestNumberWin = new List<int>();
-        foreach (System.Xml.XmlNode node in doc.DocumentElement)
+
+        /*foreach (System.Xml.XmlNode node in doc.DocumentElement)
         {
             if (node.Name == "Quest")
             {
@@ -209,8 +216,47 @@ public class SettingsApplication : MonoBehaviour
             {
                 game_over = true; SettingsApplication.game_over = int.Parse(node.InnerText);
             }
-        }
+        }*/
         loadSetting = true;
+    }
+
+    /// <summary>
+    /// Парсинг загружаемого файла настроек
+    /// </summary>
+    /// <param name="stream"></param>
+    private static void streamParse(Stream stream)
+    {
+        var len = stream.Length;
+        if (len > 8)
+        {
+            byte[] tmp_array = new byte[4]; int i = 0;
+            List<int> list = new List<int>();
+            while (i < len)
+            {
+                stream.Read(tmp_array,0,4); i += 4;
+                int val = BitConverter.ToInt32(tmp_array,0);
+                list.Add(val);
+            }
+            int win = list[0], game_over = list[1];
+            list.RemoveRange(0, 2);
+            SettingsApplication.win = win;
+            SettingsApplication.game_over = game_over;
+            int len_list = list.Count, len_q = saveQuestNumberWin.Count;
+            if (saveQuestNumberWin == null)
+                saveQuestNumberWin = new List<int>();
+            for (i=0;i<len_list;i++)
+            {
+                bool prov = true;
+                for (int j=0;j<len_q;j++)
+                    if (list[i] == saveQuestNumberWin[i])
+                    {
+                        prov = false;
+                        break;
+                    }
+                if (prov)
+                    saveQuestNumberWin.Add(list[i]);
+            }
+        }
     }
 
     /// <summary>
@@ -314,23 +360,40 @@ public class SettingsApplication : MonoBehaviour
                 {
                     try
                     {
-                        System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.ReadWrite);
-                        System.IO.Stream stream = getStreamReverse(fs);
-                        doc.Load(stream);
+                        int win = SettingsApplication.win;
+                        int game_over = SettingsApplication.game_over;
+                        int[] array = saveQuestNumberWin.ToArray();
+                        loadSettingFile();
+                        SettingsApplication.win = win;
+                        SettingsApplication.game_over = game_over;
+                        int count_len = saveQuestNumberWin.Count;
                         for (int i = 0; i < n; i++)
                         {
-                            var element = doc.CreateElement("Quest");
-                            element.InnerText = saveQuestNumberWin[i].ToString();
-                            doc.DocumentElement.AppendChild(element);
+                            bool prov = true;
+                            for (int j = 0; j < count_len; j++)
+                                if (saveQuestNumberWin[j] == array[i])
+                                {
+                                    prov = false;
+                                    break;
+                                }
+                            if (prov)
+                            {
+                                saveQuestNumberWin.Add(array[i]);
+                                count_len++;
+                            }
                         }
-                        stream = new System.IO.MemoryStream();
-                        doc.Save(stream);
+                        System.IO.Stream stream = new System.IO.MemoryStream();
+                        byte[] tmp_bytes = BitConverter.GetBytes(SettingsApplication.win);
+                        stream.Write(tmp_bytes, 0, 4);
+                        tmp_bytes = BitConverter.GetBytes(SettingsApplication.game_over);
+                        stream.Write(tmp_bytes, 0, 4);
+                        for (int i=0;i<count_len;i++)
+                        {
+                            tmp_bytes = BitConverter.GetBytes(saveQuestNumberWin[i]);
+                            stream.Write(tmp_bytes, 0, 4);
+                        }
                         stream = getStreamReverse(stream);
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-                        fs.Close();
-#endif                        
-                        fs.Dispose();
-                        fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+                        var fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
                         FileStreamWriteFromOtherStreamData(fs, stream);
 #if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
                         fs.Close();

@@ -207,22 +207,8 @@ public class StaticInformation : MonoBehaviour {
                     /*string url = "http://2014.ucoz.org/file_c/game/unity/level.zip";
                     WWW w = new WWW(url);
                     while (w.isDone == false) {  };
-                    */MemoryStream ms = new MemoryStream(File.ReadAllBytes(@"C:\Users\aleks\Desktop\level.xml")/*w.bytes*/);
-                    //Stream ms = new FileStream("C:\\Users\\aleks\\Desktop\\level.zip", FileMode.Open, FileAccess.Read);
-                    //FileStream fs = new FileStream("C:\\Users\\aleks\\Desktop\\level.gz", FileMode.Open, FileAccess.Read);
-                    //System.IO.Compression.GZipStream g = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress, false);
-                    //System.IO.Compression.DeflateStream g = new System.IO.Compression.DeflateStream(fs, System.IO.Compression.CompressionMode.Decompress, false);
-                    //MemoryStream ms = new MemoryStream();
-                    /*byte[] mass = new byte[g.BaseStream.Length];
-                    int h;
-                    while((h = g.Read(mass,0,mass.Length)) > 0)
-                    {
-                        ms.Write(mass, 0, h);
-                    }
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-                    g.Close();
-#endif
-                    g.Dispose();*/
+                    w.Dispose();*/
+                    MemoryStream ms = new MemoryStream(File.ReadAllBytes(@"C:\Users\aleks\Desktop\level.xml")/*w.bytes*/);
                     downloaddonelevels = false;
                     xmlParse(ms);
                     downloaddonelevels = true; loadDataFileNowFromSite_bool = false;

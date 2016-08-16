@@ -200,33 +200,44 @@ public class StaticInformation : MonoBehaviour {
                 Debug.Log("wait download file level");
             }
             loadDataFileNowFromSite_bool = true;
-            int restart = 0;
-            ret1:
-            try
+            for (int i = 0; i < 5; i++)
             {
-                string url = "http://2014.ucoz.org/file_c/game/unity/level.xml";
-                WWW w = new WWW(url);
-                while (w.isDone == false) { };
-                MemoryStream ms = new MemoryStream(w.bytes);
-                downloaddonelevels = false;
-                xmlParse(ms);
-                downloaddonelevels = true; loadDataFileNowFromSite_bool = false;
-                return true;
+                try
+                {
+                    /*string url = "http://2014.ucoz.org/file_c/game/unity/level.zip";
+                    WWW w = new WWW(url);
+                    while (w.isDone == false) {  };
+                    */MemoryStream ms = new MemoryStream(File.ReadAllBytes(@"C:\Users\aleks\Desktop\level.xml")/*w.bytes*/);
+                    //Stream ms = new FileStream("C:\\Users\\aleks\\Desktop\\level.zip", FileMode.Open, FileAccess.Read);
+                    //FileStream fs = new FileStream("C:\\Users\\aleks\\Desktop\\level.gz", FileMode.Open, FileAccess.Read);
+                    //System.IO.Compression.GZipStream g = new System.IO.Compression.GZipStream(fs, System.IO.Compression.CompressionMode.Decompress, false);
+                    //System.IO.Compression.DeflateStream g = new System.IO.Compression.DeflateStream(fs, System.IO.Compression.CompressionMode.Decompress, false);
+                    //MemoryStream ms = new MemoryStream();
+                    /*byte[] mass = new byte[g.BaseStream.Length];
+                    int h;
+                    while((h = g.Read(mass,0,mass.Length)) > 0)
+                    {
+                        ms.Write(mass, 0, h);
+                    }
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+                    g.Close();
+#endif
+                    g.Dispose();*/
+                    downloaddonelevels = false;
+                    xmlParse(ms);
+                    downloaddonelevels = true; loadDataFileNowFromSite_bool = false;
+                    return true;
+                }
+                catch (UnityException ex)
+                {
+                    Debug.Log(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Debug.Log(ex.Message);
+                }
             }
-            catch (UnityException ex)
-            {
-                Debug.Log(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                Debug.Log(ex.Message);
-            }
-            if (restart < 5)
-            {
-                restart++;
-                goto ret1;
-            }
-            downloaddonelevels = false; loadDataFileNowFromSite_bool = false;
+            downloaddonelevels = false; loadDataFileNowFromSite_bool = false; 
             return false;
         }
 

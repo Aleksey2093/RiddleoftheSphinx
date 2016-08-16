@@ -121,6 +121,8 @@ public class SettingsApplication : MonoBehaviour
     {
         if (result.Position > 0)
             result.Position = 0;
+        if (stream.Position > 0)
+            stream.Position = 0;
         int byteint = stream.ReadByte();
         while (byteint != -1)
         {
@@ -200,23 +202,6 @@ public class SettingsApplication : MonoBehaviour
                     restart_cout++;
             }
         }
-
-        /*foreach (System.Xml.XmlNode node in doc.DocumentElement)
-        {
-            if (node.Name == "Quest")
-            {
-                int chisel = int.Parse(node.InnerText);
-                saveQuestNumberWin.Add(chisel);
-            }
-            else if (win == false && node.Name == "WIN")
-            {
-                win = true; SettingsApplication.win = int.Parse(node.InnerText);
-            }
-            else if (game_over == false && node.Name == "GAMEOVER")
-            {
-                game_over = true; SettingsApplication.game_over = int.Parse(node.InnerText);
-            }
-        }*/
         loadSetting = true;
     }
 
@@ -227,7 +212,7 @@ public class SettingsApplication : MonoBehaviour
     private static void streamParse(Stream stream)
     {
         var len = stream.Length;
-        if (len > 8)
+        if (len >= 8)
         {
             byte[] tmp_array = new byte[4]; int i = 0;
             List<int> list = new List<int>();
@@ -241,9 +226,9 @@ public class SettingsApplication : MonoBehaviour
             list.RemoveRange(0, 2);
             SettingsApplication.win = win;
             SettingsApplication.game_over = game_over;
-            int len_list = list.Count, len_q = saveQuestNumberWin.Count;
             if (saveQuestNumberWin == null)
                 saveQuestNumberWin = new List<int>();
+            int len_list = list.Count, len_q = saveQuestNumberWin.Count;
             for (i=0;i<len_list;i++)
             {
                 bool prov = true;

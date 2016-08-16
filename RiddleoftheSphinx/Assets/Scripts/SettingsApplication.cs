@@ -351,7 +351,6 @@ public class SettingsApplication : MonoBehaviour
         if (saveNow == false)
         {
             saveNow = true;
-            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
             string filepath = getFileSettingsPath();
             if (createFile(filepath, win, game_over))
             {
@@ -360,12 +359,12 @@ public class SettingsApplication : MonoBehaviour
                 {
                     try
                     {
-                        int win = SettingsApplication.win;
-                        int game_over = SettingsApplication.game_over;
+                        int win_copy = win;
+                        int game_over_copy = game_over;
                         int[] array = saveQuestNumberWin.ToArray();
                         loadSettingFile();
-                        SettingsApplication.win = win;
-                        SettingsApplication.game_over = game_over;
+                        win = win_copy;
+                        game_over = game_over_copy;
                         int count_len = saveQuestNumberWin.Count;
                         for (int i = 0; i < n; i++)
                         {
@@ -383,7 +382,7 @@ public class SettingsApplication : MonoBehaviour
                             }
                         }
                         System.IO.Stream stream = new System.IO.MemoryStream();
-                        byte[] tmp_bytes = BitConverter.GetBytes(SettingsApplication.win);
+                        byte[] tmp_bytes = BitConverter.GetBytes(win);
                         stream.Write(tmp_bytes, 0, 4);
                         tmp_bytes = BitConverter.GetBytes(SettingsApplication.game_over);
                         stream.Write(tmp_bytes, 0, 4);

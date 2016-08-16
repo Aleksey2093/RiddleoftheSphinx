@@ -39,10 +39,11 @@ public class MenuButtons : MonoBehaviour {
 
     void OnGUI ()
     {
-        float buttonwidth = (float)(Screen.width * 2.0 / 3.0);
-        float buttonheight = 30;
-        Rect buttonRect = new Rect((float)(Screen.width / 2.0 - buttonwidth / 2.0),
-            (float)(Screen.height - buttonheight - buttonheight / 2), buttonwidth, buttonheight);
+        float buttonwidth = (Screen.width * 2 / 3);
+        float buttonheight = 30 * Screen.dpi / 96;
+        Debug.Log(string.Format("button height: {0}", buttonheight));
+        Rect buttonRect = new Rect((Screen.width / 2 - buttonwidth / 2),
+            (Screen.height - buttonheight - buttonheight / 2), buttonwidth, buttonheight);
         if (GUI.Button(buttonRect, "Выход"))
         {
             Application.Quit();

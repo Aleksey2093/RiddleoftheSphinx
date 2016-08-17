@@ -17,7 +17,7 @@ public class SettingsApplication : MonoBehaviour
     /// <summary>
     /// Номера пройденных уровней
     /// </summary>
-    private static List<int> saveQuestNumberWin;
+    private static List<int> saveQuestNumberWin = new List<int>();
     /// <summary>
     /// Указатель на то, что сейчас проиходит сохранение
     /// </summary>
@@ -86,10 +86,10 @@ public class SettingsApplication : MonoBehaviour
             System.IO.Stream stream = new System.IO.MemoryStream();
 
             var mass_tmp = BitConverter.GetBytes(win);
-            stream.Write(mass_tmp,0,mass_tmp.Length);
+            stream.Write(mass_tmp, 0, mass_tmp.Length);
 
             mass_tmp = BitConverter.GetBytes(game_over);
-            stream.Write(mass_tmp,0,mass_tmp.Length);
+            stream.Write(mass_tmp, 0, mass_tmp.Length);
 
             /*doc.Save(stream);
             Debug.Log("save doc create to stream");*/
@@ -184,7 +184,7 @@ public class SettingsApplication : MonoBehaviour
 #if UNITY_EDITOR_WIN == true || UNITY_STANDALONE == true
         loadSettingFileWindowsSystemMetod();
 #else
-        loadSettingFileOther()
+        loadSettingFileOther();
 #endif
         loadSetting = true;
     }
@@ -193,23 +193,19 @@ public class SettingsApplication : MonoBehaviour
     {
         win = PlayerPrefs.GetInt("win", 0);
         game_over = PlayerPrefs.GetInt("game_over", 0);
-        string str = PlayerPrefs.GetString("quest_win",null);
-        if (str != null)
+        string str = PlayerPrefs.GetString("quest_win", null);
+        if (str != null && str.Length > 3)
         {
             string[] mass = str.Split(',');
             saveQuestNumberWin = new List<int>();
             int n = mass.Length;
-            for (int i=0;i<n;i++)
+            for (int i = 0; i < n; i++)
             {
-                try
-                {
-                    int value = int.Parse(mass[i]);
+                int value;
+                if (int.TryParse(mass[i],out value))
                     saveQuestNumberWin.Add(value);
-                }
-                catch(Exception ex)
-                {
-                    Debug.Log(ex.Message);
-                }
+                else
+                    Debug.Log("Error read savedata quest_win i = " + i);
             }
         }
     }
@@ -256,8 +252,8 @@ public class SettingsApplication : MonoBehaviour
             List<int> list = new List<int>();
             while (i < len)
             {
-                stream.Read(tmp_array,0,4); i += 4;
-                int val = BitConverter.ToInt32(tmp_array,0);
+                stream.Read(tmp_array, 0, 4); i += 4;
+                int val = BitConverter.ToInt32(tmp_array, 0);
                 list.Add(val);
             }
             if (saveQuestNumberWin == null)
@@ -267,10 +263,10 @@ public class SettingsApplication : MonoBehaviour
             SettingsApplication.win = win;
             SettingsApplication.game_over = game_over;
             int len_list = list.Count, len_q = saveQuestNumberWin.Count;
-            for (i=0;i<len_list;i++)
+            for (i = 0; i < len_list; i++)
             {
                 bool prov = true;
-                for (int j=0;j<len_q;j++)
+                for (int j = 0; j < len_q; j++)
                     if (list[i] == saveQuestNumberWin[i])
                     {
                         prov = false;
@@ -370,7 +366,7 @@ public class SettingsApplication : MonoBehaviour
                 break;
             }
         }
-        Debug.Log("Save end while " + saveNow.ToString());
+        Debug.Log("Save end while state: " + saveNow.ToString());
         if (saveNow == false)
         {
             saveNow = true;
@@ -386,67 +382,50 @@ public class SettingsApplication : MonoBehaviour
 
     private static void saveFuncOtherSystem()
     {
-        PlayerPrefs.SetInt("win",win);
-        PlayerPrefs.SetInt("game_over",game_over);
-        string.Join();
-        PlayerPrefs.SetString
+        PlayerPrefs.SetInt("win", win);
+        PlayerPrefs.SetInt("game_over", game_over);
+        int n = saveQuestNumberWin.Count;
+        if (n > 0)
+        {
+            string quest = ""; n = n - 1;
+            for (int i = 0; i < n; i++)
+                quest += saveQuestNumberWin[i].ToString() + ",";
+            quest += saveQuestNumberWin[n].ToString();
+            PlayerPrefs.SetString("quest_win", quest);
+        }
+        PlayerPrefs.Save();
     }
 
-    private static void saveFuncWindowsSystem()
+    private static bool saveFuncWindowsSystem()
     {
-            string filepath = getFileSettingsPath();
-            if (createFile(filepath, win, game_over))
+        string filepath = getFileSettingsPath();
+        try
+        {
+            int count_len = saveQuestNumberWin.Count;
+            System.IO.Stream stream = new System.IO.MemoryStream();
+            byte[] tmp_bytes = BitConverter.GetBytes(win);
+            stream.Write(tmp_bytes, 0, 4);
+            tmp_bytes = BitConverter.GetBytes(game_over);
+            stream.Write(tmp_bytes, 0, 4);
+            for (int i = 0; i < count_len; i++)
             {
-                int n = saveQuestNumberWin.Count;
-                if (n > 0)
-                {
-                    try
-                    {
-                        int win_copy = win;
-                        int game_over_copy = game_over;
-                        //int[] array = saveQuestNumberWin.ToArray();
-                        //loadSettingFile();
-                        win = win_copy;
-                        game_over = game_over_copy;
-                        int count_len = saveQuestNumberWin.Count;
-                        /*for (int i = 0; i < n; i++)
-                        {
-                            bool prov = true;
-                            for (int j = 0; j < count_len; j++)
-                                if (saveQuestNumberWin[j] == array[i])
-                                {
-                                    prov = false;
-                                    break;
-                                }
-                            if (prov)
-                            {
-                                saveQuestNumberWin.Add(array[i]);
-                                count_len++;
-                            }
-                        }*/
-                        System.IO.Stream stream = new System.IO.MemoryStream();
-                        byte[] tmp_bytes = BitConverter.GetBytes(win);
-                        stream.Write(tmp_bytes, 0, 4);
-                        tmp_bytes = BitConverter.GetBytes(game_over);
-                        stream.Write(tmp_bytes, 0, 4);
-                        for (int i=0;i<count_len;i++)
-                        {
-                            tmp_bytes = BitConverter.GetBytes(saveQuestNumberWin[i]);
-                            stream.Write(tmp_bytes, 0, 4);
-                        }
-                        stream = getStreamReverse(stream);
-                        var fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
-                        FileStreamWriteFromOtherStreamData(fs, stream);
-                        stream.Close();
-                        fs.Close();
-                        stream.Dispose();
-                        fs.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Log(ex.Message);
-                    }
-                }
+                tmp_bytes = BitConverter.GetBytes(saveQuestNumberWin[i]);
+                stream.Write(tmp_bytes, 0, 4);
             }
+            stream = getStreamReverse(stream);
+            var fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
+            FileStreamWriteFromOtherStreamData(fs, stream);
+            stream.Close();
+            fs.Close();
+            stream.Dispose();
+            fs.Dispose();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.Log(ex.Message);
+            return false;
+        }
+
     }
 }

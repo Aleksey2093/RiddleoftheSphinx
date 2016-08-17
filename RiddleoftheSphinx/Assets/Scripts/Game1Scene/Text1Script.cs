@@ -84,20 +84,20 @@ public class Text1Script : MonoBehaviour {
         {
             case StaticInformation.LevelXml.Reslvl.Ok:
                 {
-                    setValueOnTextAndButtons(level_info.get_Info());
                     try
                     {
                         Animator animator = textQuest.GetComponent<Animator>();
                         animator.SetBool("Povorot", true);
                     }
-                    catch(UnityEngine.UnityException ex)
+                    catch (UnityEngine.UnityException ex)
                     {
                         Debug.Log(ex.Message);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Debug.Log(ex.Message);
                     }
+                    setValueOnTextAndButtons(level_info.get_Info());
                 }
                 break;
             case StaticInformation.LevelXml.Reslvl.No_Lvl:
@@ -142,6 +142,7 @@ public class Text1Script : MonoBehaviour {
     void Update () {
         if (Input.GetKeyDown(KeyCode.Backspace) || Input.GetKeyDown(KeyCode.Escape))
         {
+            SettingsApplication.Save();
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
         }
 	}

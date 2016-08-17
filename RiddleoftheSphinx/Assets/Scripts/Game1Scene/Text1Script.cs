@@ -63,14 +63,14 @@ public class Text1Script : MonoBehaviour {
             i++;
         }
         var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl);
-        /*if (level_info != null)
-            setValueOnTextAndButtons(level_info);
-        else
-            stopGameBesauseNotLvl();*/
         switch (level_info.get_Message())
         {
             case StaticInformation.LevelXml.Reslvl.Ok:
-                setValueOnTextAndButtons(level_info.get_Info());
+                {
+                    setValueOnTextAndButtons(level_info.get_Info());
+                    Animator animator = gameObject.GetComponent<Animator>();
+                    animator.SetBool("Povorot", true);
+                }
                 break;
             case StaticInformation.LevelXml.Reslvl.No_Lvl:
                 {

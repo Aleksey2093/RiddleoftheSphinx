@@ -135,7 +135,7 @@ public class StaticInformation : MonoBehaviour {
         /// </summary>
         /// <param name="nowlvl">Номер текущего уровня</param>
         /// <returns>LevelInformation с информацией о новом уровне</returns>
-        public static ResultNextLevel getNextLevel(int nowlvl)
+        public static ResultNextLevel getNextLevel(int nowlvl, bool win_or_over)
         {
             Func<int, int, ResultNextLevel> getLevel = (start, end) =>
             {
@@ -147,6 +147,10 @@ public class StaticInformation : MonoBehaviour {
                     }
                 return new ResultNextLevel(Reslvl.No_Lvl, null);
             };
+            if (nowlvl > 0 && win_or_over)
+            {
+                SettingsApplication.addWin(nowlvl);
+            }
             for (int i = 0; i < 2; i++)
             {
                 int index = numbers.FindIndex(x => x == nowlvl), count = numbers.Count;
@@ -196,11 +200,18 @@ public class StaticInformation : MonoBehaviour {
         private static byte[] getDownloadLoadFileByte()
         {
             string url = "http://2014.ucoz.org/file_c/game/unity/level.xml";
+            float time1 = UnityEngine.Time.time;
             WWW w = new WWW(url);
-            while (w.isDone == false) { }
-            byte[] bytes = w.bytes;
-            w.Dispose();
-            return bytes;
+            while (w.isDone == false)
+            {
+                float time2 = UnityEngine.Time.time;
+                if (time2 - time1 > 30)
+                {
+                    Debug.Log("Download WWW class file > 30");
+                    return null;
+                }
+            }
+            return w.bytes;
         }
 
         /// <summary>
@@ -209,21 +220,33 @@ public class StaticInformation : MonoBehaviour {
         /// <returns></returns>
         public static bool loadDataFromFileFromSite()
         {
-            while(loadDataFileNowFromSite_bool)
+            float time1 = UnityEngine.Time.time;
+            while (loadDataFileNowFromSite_bool)
             {
-                Debug.Log("wait download file level");
+                float time2 = UnityEngine.Time.time;
+                if (time2 - time1 > 30)
+                {
+                    Debug.Log("Wait download > 30 sec");
+                    return false;
+                }
+                else
+                    Debug.Log("Wait download file level");
             }
-            
             loadDataFileNowFromSite_bool = true;
             for (int i = 0; i < 5; i++)
             {
                 try
                 {
-                    MemoryStream ms = new MemoryStream(getDownloadLoadFileByte());
-                    downloaddonelevels = false;
-                    xmlParse(ms);
-                    downloaddonelevels = true; loadDataFileNowFromSite_bool = false;
-                    return true;
+                    byte[] bytes = getDownloadLoadFileByte();
+                    if (bytes != null)
+                    {
+                        MemoryStream ms = new MemoryStream(bytes);
+                        downloaddonelevels = false;
+                        xmlParse(ms);
+                        downloaddonelevels = true;
+                    }
+                    loadDataFileNowFromSite_bool = false;
+                    return (bytes != null);
                 }
                 catch (UnityException ex)
                 {

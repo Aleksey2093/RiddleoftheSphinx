@@ -16,14 +16,6 @@ public class Text1Script : MonoBehaviour {
 
     void Awake()
     {
-        System.Threading.Thread thread = new System.Threading.Thread(() =>
-        {
-            while(nowlvl != -1000)
-            {
-
-            }
-        });
-        thread.Start();
         nowlvl = 0;
         answer_true = null;
     }
@@ -34,6 +26,10 @@ public class Text1Script : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
+        if (SettingsApplication.get_loadSetting() == false)
+        {
+            SettingsApplication.loadSettingFile();
+        }
         try
         {
             textQuest = GameObject.Find("TextQuest").GetComponent<Text>();
@@ -52,7 +48,6 @@ public class Text1Script : MonoBehaviour {
     {
         if (answer_true == answer)
         {
-            SettingsApplication.addWin(nowlvl);
             nextLevel();
         }
         else
@@ -84,7 +79,7 @@ public class Text1Script : MonoBehaviour {
             }
             i++;
         }
-        var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl);
+        var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl,true);
         switch (level_info.get_Message())
         {
             case StaticInformation.LevelXml.Reslvl.Ok:

@@ -31,36 +31,4 @@ public class MenuButtons : MonoBehaviour {
     {
         StaticInformation.LevelXml.loadDataFromFileFromSite();
     }
-
-    void Update ()
-    {
-
-    }
-
-    void OnGUI ()
-    {
-        float buttonwidth = (Screen.width * 2 / 3);
-        float buttonheight = 30 * Screen.dpi / 96;
-        Debug.Log(string.Format("button height: {0}", buttonheight));
-        Rect buttonRect = new Rect((Screen.width / 2 - buttonwidth / 2),
-            (Screen.height - buttonheight - buttonheight / 2), buttonwidth, buttonheight);
-        if (GUI.Button(buttonRect, "Выход"))
-        {
-            Application.Quit();
-        }
-        buttonRect.y -= (buttonheight + 1);
-        if (GUI.Button(buttonRect, "Начать игру"))
-        {
-            if (StaticInformation.downloaddonelevels)
-            {
-                Debug.Log("Load Game1 Scene start");
-                SceneManager.LoadSceneAsync("Game1");
-                Debug.Log("Load Game1 Scene end");
-            }
-            else
-            {
-                Debug.Log("Download level not");
-            }
-        }
-    }
 }

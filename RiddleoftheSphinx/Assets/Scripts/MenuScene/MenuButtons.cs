@@ -29,12 +29,34 @@ public class MenuButtons : MonoBehaviour {
     /// </summary>
     private void loadFilesQuestsFromNet()
     {
-        StaticInformation.LevelXml.loadDataFromFileFromSite();
+        var obj = GameObject.Find("ProgressBarLabelInside");
+        if (obj != null)
+        {
+            var progressBar = obj.GetComponent<ProgressBar.ProgressBarBehaviour>();
+            if (progressBar != null)
+            {
+                this.progressBar = progressBar;
+                progressBar_NotNull = true;
+                StaticInformation.LevelXml.loadDataFromFileFromSite(progressBar);
+                return;
+            }
+        }
+        StaticInformation.LevelXml.loadDataFromFileFromSite(null);
     }
+
+    private bool progressBar_NotNull = false;
+    private ProgressBar.ProgressBarBehaviour progressBar;
 
     void Update ()
     {
-
+        if (progressBar_NotNull && progressBar.isDone)
+        {
+            progressBar_NotNull = false;
+            var obj = GameObject.Find("ProgressBarLabelInside");
+            DestroyObject(obj);
+            if (progressBar != null)
+                progressBar = null;
+        }
     }
 
     void OnGUI ()

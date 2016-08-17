@@ -157,7 +157,7 @@ public class StaticInformation : MonoBehaviour {
                 if (level.get_Message() == Reslvl.Ok) return level;
                 //Хотя можем сделать ход конем и загрузить еще раз файл с сайта и так грузим
                 if (i == 0)
-                    loadDataFromFileFromSite();
+                    loadDataFromFileFromSite(null);
             }
             //Если дошли сюда значит уровней вообще не осталось и мы должны сообщить об этом пользователю возвращаем null, остальное делает вызывающий метод (он один на текущий момент)
             /*Для начало мы должны уточнить, а если ли у нас вообще уровни для игры даже после повторной загружки? 
@@ -193,7 +193,7 @@ public class StaticInformation : MonoBehaviour {
         /// Загружает данные из xml файла с сайта
         /// </summary>
         /// <returns></returns>
-        public static bool loadDataFromFileFromSite()
+        public static bool loadDataFromFileFromSite(ProgressBar.ProgressBarBehaviour progressBar)
         {
             while(loadDataFileNowFromSite_bool)
             {
@@ -204,15 +204,31 @@ public class StaticInformation : MonoBehaviour {
             {
                 try
                 {
-                    /*string url = "http://2014.ucoz.org/file_c/game/unity/level.zip";
+                    string url = "http://2014.ucoz.org/file_c/game/unity/level.zip";
                     WWW w = new WWW(url);
-                    while (w.isDone == false) {  };
-                    w.Dispose();*/
-                    MemoryStream ms = new MemoryStream(File.ReadAllBytes(@"C:\Users\aleks\Desktop\level.xml")/*w.bytes*/);
-                    downloaddonelevels = false;
-                    xmlParse(ms);
-                    downloaddonelevels = true; loadDataFileNowFromSite_bool = false;
-                    return true;
+                    if (progressBar != null)
+                        while (w.isDone == false) { progressBar.Value = w.progress; }
+                    else
+                        for (int j = 0; j < 100000; j++) { if (w.isDone == false) break; }
+                    if (w.isDone == true)
+                    {
+                        if (progressBar != null)
+                            progressBar.Value = 90;
+                        MemoryStream ms = new MemoryStream(w.bytes);
+                        downloaddonelevels = false;
+                        xmlParse(ms);
+                        downloaddonelevels = true; loadDataFileNowFromSite_bool = false;
+                        if (progressBar != null)
+                        {
+                            progressBar.Value = 100;
+                        }
+                        return true;
+                    }
+                    else if (progressBar != null)
+                    {
+                        progressBar.Value = 0;
+                    }
+                    w.Dispose();
                 }
                 catch (UnityException ex)
                 {

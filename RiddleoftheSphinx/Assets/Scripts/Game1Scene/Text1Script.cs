@@ -50,7 +50,7 @@ public class Text1Script : MonoBehaviour {
             {
                 if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
                 {
-                    if (StaticInformation.LevelXml.loadDataFromFileFromSite())
+                    if (StaticInformation.LevelXml.loadDataFromFileFromSite(null))
                     {
                         break;
                     }

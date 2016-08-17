@@ -25,14 +25,15 @@ public class InformationScreen : MonoBehaviour {
     /// </summary>
     void showGUIInfoWinAndGameOver()
     {
-        float size = (Screen.height > Screen.width) ? Screen.width : Screen.height;
-        size *= (float)0.30;
+        float width = (Screen.height > Screen.width) ? Screen.width : Screen.height,
+            height = 20 * Screen.dpi / 96f;
+        width *= 45f / 100f;
         GUIStyle style = GUI.skin.textArea;
-        style.fontSize = 12;
+        style.fontSize = (int)(14f * (Screen.dpi / 96f));
         style.alignment = TextAnchor.MiddleCenter;
-        Rect rect = new Rect(3, 3, size, style.lineHeight + style.fontSize);
+        Rect rect = new Rect(3, 3, width, height);
         GUI.TextArea(rect, "WIN " + SettingsApplication.Win(), style);
-        rect = new Rect(Screen.width - size - 3, 3, size, style.lineHeight + style.fontSize);
+        rect = new Rect(Screen.width - width - 3, 3, width, height);
         GUI.TextArea(rect, "GAMEOVER " + SettingsApplication.Game_Over(), style);
     }
 
@@ -56,36 +57,37 @@ public class InformationScreen : MonoBehaviour {
 
     private Rect getPositionDialogWindow()
     {
-       return new Rect((float)(Screen.width / 5.0), (float)(Screen.height / 5.0), 
-           (float)(Screen.width * 3.0 / 4.0), (float)(Screen.height * 3.0 / 4.0));
+        float width = (Screen.width / 10f), height = (Screen.height / 10f);
+       return new Rect(width, height, 
+           (Screen.width - width - width), (Screen.height - height - height));
     }
 
     Rect windowRect;
  
     private void DialogWindow(int windowID)
     {
+        var obj = GameObject.FindObjectOfType<Canvas>();
+        if (obj != null && obj.isActiveAndEnabled)
+            Destroy(obj);
         string label_text = (windowID == 1) ? "Уровни закончились. Ждите новые уровни." :
             "Проблема с загрузкой уровней.";
-        float y = 20;
+        float y = 40, h_element = 40 * Screen.dpi / 96;
         var label_style = GUI.skin.label;
         label_style.alignment = TextAnchor.MiddleCenter;
-        GUI.Label(new Rect(5, y, windowRect.width, 20), label_text, label_style);
-        y += 21;
+        GUI.Label(new Rect(0, y, windowRect.width, h_element), label_text);
+        y += 1 + h_element;
         var button_style = GUI.skin.button;
         button_style.alignment = TextAnchor.MiddleCenter;
-        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Главное меню".ToString(), button_style))
+        if (GUI.Button(new Rect(0, y, windowRect.width, h_element), "Главное меню".ToString()))
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-        y += 21;
-        if (GUI.Button(new Rect(5, y, windowRect.width - 10, 20), "Выход".ToString(), button_style))
+        y += 1 + h_element;
+        if (GUI.Button(new Rect(0, y, windowRect.width, h_element), "Выход".ToString()))
             Application.Quit();
     }
 
     void OnGUI()
     {
-        if (SettingsApplication.get_loadSetting())
-        {
-            showGUIInfoWinAndGameOver();
-        }
+        showGUIInfoWinAndGameOver();
         switch (reslvl)
         {
             case StaticInformation.LevelXml.Reslvl.Ok:

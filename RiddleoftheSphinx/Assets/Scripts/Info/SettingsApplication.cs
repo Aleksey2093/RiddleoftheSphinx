@@ -224,8 +224,10 @@ public class SettingsApplication : MonoBehaviour
                 System.IO.Stream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
                 System.IO.Stream stream = getStreamReverse(fs);
                 streamParse(stream);
+#if UNITY_WSA == false
                 fs.Close();
                 stream.Close();
+#endif
                 fs.Dispose();
                 stream.Dispose();
                 break;
@@ -401,12 +403,12 @@ public class SettingsApplication : MonoBehaviour
         string filepath = getFileSettingsPath();
         try
         {
-            int count_len = saveQuestNumberWin.Count;
             System.IO.Stream stream = new System.IO.MemoryStream();
             byte[] tmp_bytes = BitConverter.GetBytes(win);
             stream.Write(tmp_bytes, 0, 4);
             tmp_bytes = BitConverter.GetBytes(game_over);
             stream.Write(tmp_bytes, 0, 4);
+            int count_len = saveQuestNumberWin.Count;
             for (int i = 0; i < count_len; i++)
             {
                 tmp_bytes = BitConverter.GetBytes(saveQuestNumberWin[i]);
@@ -415,8 +417,10 @@ public class SettingsApplication : MonoBehaviour
             stream = getStreamReverse(stream);
             var fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
             FileStreamWriteFromOtherStreamData(fs, stream);
+#if UNITY_WSA == false
             stream.Close();
             fs.Close();
+#endif
             stream.Dispose();
             fs.Dispose();
             return true;

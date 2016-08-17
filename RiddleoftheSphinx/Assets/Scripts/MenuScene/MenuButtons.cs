@@ -29,34 +29,12 @@ public class MenuButtons : MonoBehaviour {
     /// </summary>
     private void loadFilesQuestsFromNet()
     {
-        var obj = GameObject.Find("ProgressBarLabelInside");
-        if (obj != null)
-        {
-            var progressBar = obj.GetComponent<ProgressBar.ProgressBarBehaviour>();
-            if (progressBar != null)
-            {
-                this.progressBar = progressBar;
-                progressBar_NotNull = true;
-                StaticInformation.LevelXml.loadDataFromFileFromSite(progressBar);
-                return;
-            }
-        }
-        StaticInformation.LevelXml.loadDataFromFileFromSite(null);
+        StaticInformation.LevelXml.loadDataFromFileFromSite();
     }
-
-    private bool progressBar_NotNull = false;
-    private ProgressBar.ProgressBarBehaviour progressBar;
 
     void Update ()
     {
-        if (progressBar_NotNull && progressBar.isDone)
-        {
-            progressBar_NotNull = false;
-            var obj = GameObject.Find("ProgressBarLabelInside");
-            DestroyObject(obj);
-            if (progressBar != null)
-                progressBar = null;
-        }
+
     }
 
     void OnGUI ()
@@ -73,9 +51,16 @@ public class MenuButtons : MonoBehaviour {
         buttonRect.y -= (buttonheight + 1);
         if (GUI.Button(buttonRect, "Начать игру"))
         {
-            Debug.Log("Load Game1 Scene start");
-            SceneManager.LoadSceneAsync("Game1");
-            Debug.Log("Load Game1 Scene end");
+            if (StaticInformation.downloaddonelevels)
+            {
+                Debug.Log("Load Game1 Scene start");
+                SceneManager.LoadSceneAsync("Game1");
+                Debug.Log("Load Game1 Scene end");
+            }
+            else
+            {
+                Debug.Log("Download level not");
+            }
         }
     }
 }

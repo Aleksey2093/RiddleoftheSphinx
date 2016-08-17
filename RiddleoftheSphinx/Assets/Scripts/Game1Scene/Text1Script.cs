@@ -16,14 +16,36 @@ public class Text1Script : MonoBehaviour {
 
     void Awake()
     {
+        System.Threading.Thread thread = new System.Threading.Thread(() =>
+        {
+            while(nowlvl != -1000)
+            {
+
+            }
+        });
+        thread.Start();
         nowlvl = 0;
         answer_true = null;
     }
 
+    private Text textQuest;
+    private Text[] buttonsAnswers = new Text[4];
+
     // Use this for initialization
     void Start()
     {
-        nextLevel();
+        try
+        {
+            textQuest = GameObject.Find("TextQuest").GetComponent<Text>();
+            for (int i = 0; i < 4; i++)
+                buttonsAnswers[i] = GameObject.Find(string.Format("Button{0}", (i + 1))).transform.GetComponentInChildren<Text>();
+            nextLevel();
+            Debug.Log("Start text1script end");
+        }
+        catch(Exception ex)
+        {
+            Debug.Log("Start text1script error: " + ex.Message);
+        }
     }
 
     public void provAnswerClickButton(string answer)
@@ -50,7 +72,7 @@ public class Text1Script : MonoBehaviour {
             {
                 if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
                 {
-                    if (StaticInformation.LevelXml.loadDataFromFileFromSite(null))
+                    if (StaticInformation.LevelXml.loadDataFromFileFromSite())
                     {
                         break;
                     }
@@ -70,7 +92,7 @@ public class Text1Script : MonoBehaviour {
                     setValueOnTextAndButtons(level_info.get_Info());
                     try
                     {
-                        Animator animator = gameObject.GetComponent<Animator>();
+                        Animator animator = textQuest.GetComponent<Animator>();
                         animator.SetBool("Povorot", true);
                     }
                     catch(UnityEngine.UnityException ex)
@@ -103,40 +125,16 @@ public class Text1Script : MonoBehaviour {
     }
 
     /// <summary>
-    /// Возвращает корректность получения объектов со сцены. Try - все получили - False нифига не получили
-    /// </summary>
-    /// <param name="textComponent">Текстовый объекток содержащий текст вопроса</param>
-    /// <param name="buttons">Кпноки</param>
-    /// <returns></returns>
-    private bool getObjectScene(out Text textComponent, out Button[] buttons)
-    {
-        textComponent = GameObject.Find("TextQuest").GetComponent<Text>();
-        buttons = FindObjectsOfType<Button>();
-        if (textComponent != null)
-        {
-            if (buttons != null)
-            {
-                buttons = getSortButton(buttons);
-                if (buttons.Length == 4)
-                    return true;
-            }
-        }
-        return false;
-    }
-
-    /// <summary>
     /// Устанавливает значение объектов сцены
     /// </summary>
     /// <param name="level_info">Информация об уровне</param>
     private void setValueOnTextAndButtons(StaticInformation.LevelXml.LevelInformation level_info)
     {
-        Text text_quest;
-        Button[] buttons;
-        if (getObjectScene(out text_quest, out buttons))
+        if (textQuest != null && Array.TrueForAll(buttonsAnswers, x=> x != null))
         {
-            text_quest.text = level_info.QuestLevel;
+            textQuest.text = level_info.QuestLevel;
             for (int i = 0; i < 4; i++)
-                buttons[i].transform.FindChild("Text").GetComponent<Text>().text = level_info.AllAnswerLevel[i];
+                buttonsAnswers[i].text = level_info.AllAnswerLevel[i];
             answer_true = level_info.True_answerLevel;
             nowlvl = level_info.NumberLevel;
         }
@@ -144,46 +142,6 @@ public class Text1Script : MonoBehaviour {
             Debug.Log("Error in setValue.... Text1Script");
     }
 
-    /// <summary>
-    /// Сортирует кнопки в массиве по цифре в конце названия кнопки
-    /// </summary>
-    /// <param name="buttons">Массив кнопок</param>
-    /// <returns></returns>
-    private Button[] getSortButton(Button[] buttons)
-    {
-        System.Collections.Generic.List<Button> list = new System.Collections.Generic.List<Button>(buttons);
-        int len = list.Count, lenminus = len - 1;
-        for (int i=0;i<lenminus;i++)
-        {
-            ret1:
-            for (int j=i+1;j<len;j++)
-            {
-                ret2:
-                string name1 = list[i].name[list[i].name.Length - 1].ToString(),
-                    name2 = list[j].name[list[j].name.Length - 1].ToString();
-                try
-                {
-                    int c1, c2;
-                    if (int.TryParse(name1, out c1) == false)
-                    {
-                        list.RemoveAt(i); goto ret1;
-                    }
-                    else if (int.TryParse(name2, out c2) == false)
-                    {
-                        list.RemoveAt(j); goto ret2;
-                    }
-                    else if (c2 < c1)
-                    {
-                        var tmp = list[i]; list[i] = list[j]; list[j] = tmp;
-                    }
-                }
-                catch {
-                    Debug.Log("Error buttons answer sort");
-                }
-            }
-        }
-        return list.ToArray();
-    }
 
     // Update is called once per frame
     void Update () {

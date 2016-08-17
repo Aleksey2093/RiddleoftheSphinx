@@ -26,10 +26,10 @@ public class InformationScreen : MonoBehaviour {
     void showGUIInfoWinAndGameOver()
     {
         float width = (Screen.height > Screen.width) ? Screen.width : Screen.height,
-            height = 20 * Screen.dpi / 96f;
-        width *= 45f / 100f;
+            height = 20 * dpiScreenDev96;
+        width *= 0.45f;
         GUIStyle style = GUI.skin.textArea;
-        style.fontSize = (int)(14f * (Screen.dpi / 96f));
+        style.fontSize = (int)(14f * dpiScreenDev96);
         style.alignment = TextAnchor.MiddleCenter;
         Rect rect = new Rect(3, 3, width, height);
         GUI.TextArea(rect, "WIN " + SettingsApplication.Win(), style);
@@ -63,6 +63,7 @@ public class InformationScreen : MonoBehaviour {
     }
 
     Rect windowRect;
+    float dpiScreenDev96 = Screen.dpi / 96f;
  
     private void DialogWindow(int windowID)
     {
@@ -71,7 +72,7 @@ public class InformationScreen : MonoBehaviour {
             Destroy(obj);
         string label_text = (windowID == 1) ? "Уровни закончились. Ждите новые уровни." :
             "Проблема с загрузкой уровней.";
-        float y = 40, h_element = 40 * Screen.dpi / 96;
+        float y = 40, h_element = y * dpiScreenDev96;
         var label_style = GUI.skin.label;
         label_style.alignment = TextAnchor.MiddleCenter;
         GUI.Label(new Rect(0, y, windowRect.width, h_element), label_text);

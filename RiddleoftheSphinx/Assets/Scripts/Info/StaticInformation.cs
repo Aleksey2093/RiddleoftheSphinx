@@ -204,12 +204,12 @@ public class StaticInformation : MonoBehaviour {
             {
                 try
                 {
-                    string url = "http://2014.ucoz.org/file_c/game/unity/level.zip";
+                    string url = "http://2014.ucoz.org/file_c/game/unity/level.xml";
                     WWW w = new WWW(url);
                     if (progressBar != null)
                         while (w.isDone == false) { progressBar.Value = w.progress; }
                     else
-                        for (int j = 0; j < 100000; j++) { if (w.isDone == false) break; }
+                        while (w.isDone == false) { }
                     if (w.isDone == true)
                     {
                         if (progressBar != null)

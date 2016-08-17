@@ -68,8 +68,19 @@ public class Text1Script : MonoBehaviour {
             case StaticInformation.LevelXml.Reslvl.Ok:
                 {
                     setValueOnTextAndButtons(level_info.get_Info());
-                    Animator animator = gameObject.GetComponent<Animator>();
-                    animator.SetBool("Povorot", true);
+                    try
+                    {
+                        Animator animator = gameObject.GetComponent<Animator>();
+                        animator.SetBool("Povorot", true);
+                    }
+                    catch(UnityEngine.UnityException ex)
+                    {
+                        Debug.Log(ex.Message);
+                    }
+                    catch(Exception ex)
+                    {
+                        Debug.Log(ex.Message);
+                    }
                 }
                 break;
             case StaticInformation.LevelXml.Reslvl.No_Lvl:

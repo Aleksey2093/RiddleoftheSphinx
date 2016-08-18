@@ -135,7 +135,7 @@ public class StaticInformation : MonoBehaviour {
         /// </summary>
         /// <param name="nowlvl">Номер текущего уровня</param>
         /// <returns>LevelInformation с информацией о новом уровне</returns>
-        public static ResultNextLevel getNextLevel(int nowlvl, bool win_or_over)
+        public static ResultNextLevel getNextLevel(int nowlvl)
         {
             Func<int, int, ResultNextLevel> getLevel = (start, end) =>
             {
@@ -147,10 +147,6 @@ public class StaticInformation : MonoBehaviour {
                     }
                 return new ResultNextLevel(Reslvl.No_Lvl, null);
             };
-            if (nowlvl > 0 && win_or_over)
-            {
-                SettingsApplication.addWin(nowlvl);
-            }
             for (int i = 0; i < 2; i++)
             {
                 int index = numbers.FindIndex(x => x == nowlvl), count = numbers.Count;
@@ -243,6 +239,10 @@ public class StaticInformation : MonoBehaviour {
                         MemoryStream ms = new MemoryStream(bytes);
                         downloaddonelevels = false;
                         xmlParse(ms);
+#if UNITY_EDITOR == true || UNITY_STANDALONE == true
+                        ms.Close();
+#endif
+                        ms.Dispose();
                         downloaddonelevels = true;
                     }
                     loadDataFileNowFromSite_bool = false;

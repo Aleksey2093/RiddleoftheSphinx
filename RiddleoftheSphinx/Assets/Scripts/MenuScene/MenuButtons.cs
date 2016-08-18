@@ -5,13 +5,9 @@ using System;
 
 public class MenuButtons : MonoBehaviour {
 
-    void Awake()
-    {
-        StaticInformation.downloaddonelevels = false;
-    }
-
     void Start ()
     {
+        StaticInformation.downloaddonelevels = false;
         loadSettingsFile();
         loadFilesQuestsFromNet();
     }
@@ -21,7 +17,8 @@ public class MenuButtons : MonoBehaviour {
     /// </summary>
     private void loadSettingsFile()
     {
-        SettingsApplication.loadSettingFile();
+        if (SettingsApplication.get_loadSetting() == false)
+            SettingsApplication.loadSettingFile();
     }
 
     /// <summary>

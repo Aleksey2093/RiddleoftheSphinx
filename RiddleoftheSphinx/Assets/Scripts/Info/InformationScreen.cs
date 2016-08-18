@@ -5,8 +5,10 @@ public class InformationScreen : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
-	}
+        dpiScreenDev96 = Screen.dpi / 96;
+        height_win_gameover_information = 20 * dpiScreenDev96;
+        h_element_dialog = y_dialog_win * dpiScreenDev96;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -20,21 +22,22 @@ public class InformationScreen : MonoBehaviour {
         reslvl = value;
     }
 
+    float height_win_gameover_information;
+
     /// <summary>
     /// Отображает в верхней части экрана информацию о пройденных уровнях и прочие
     /// </summary>
     void showGUIInfoWinAndGameOver()
     {
-        float width = (Screen.height > Screen.width) ? Screen.width : Screen.height,
-            height = 20 * dpiScreenDev96;
+        float width = (Screen.height > Screen.width) ? Screen.width : Screen.height;
         width *= 0.45f;
-        GUIStyle style = GUI.skin.textArea;
-        style.fontSize = (int)(14f * dpiScreenDev96);
+        GUIStyle style = GUI.skin.box;
+        style.fontSize = (int)(style.fontSize * dpiScreenDev96);
         style.alignment = TextAnchor.MiddleCenter;
-        Rect rect = new Rect(3, 3, width, height);
-        GUI.TextArea(rect, "WIN " + SettingsApplication.Win(), style);
-        rect = new Rect(Screen.width - width - 3, 3, width, height);
-        GUI.TextArea(rect, "GAMEOVER " + SettingsApplication.Game_Over(), style);
+        Rect rect = new Rect(3, 3, width, height_win_gameover_information);
+        GUI.Box(rect, "WIN " + SettingsApplication.Win(), style);
+        rect = new Rect(Screen.width - width - 3, 3, width, height_win_gameover_information);
+        GUI.Box(rect, "GAMEOVER " + SettingsApplication.Game_Over(), style);
     }
 
     /// <summary>
@@ -58,31 +61,40 @@ public class InformationScreen : MonoBehaviour {
     private Rect getPositionDialogWindow()
     {
         float width = (Screen.width / 10f), height = (Screen.height / 10f);
-       return new Rect(width, height, 
-           (Screen.width - width - width), (Screen.height - height - height));
+        return new Rect(width, height,
+            (Screen.width - width - width), (Screen.height - height - height));
     }
 
     Rect windowRect;
-    float dpiScreenDev96 = Screen.dpi / 96f;
- 
+    float dpiScreenDev96;
+    float y_dialog_win = 40, h_element_dialog;
+
     private void DialogWindow(int windowID)
     {
-        var obj = GameObject.FindObjectOfType<Canvas>();
-        if (obj != null && obj.isActiveAndEnabled)
-            Destroy(obj);
+        var mass = GameObject.FindGameObjectsWithTag("ElementDestroyGameDialogWindow");
+        for (int i = 0; i < mass.Length; i++)
+            Destroy(mass[i]);
         string label_text = (windowID == 1) ? "Уровни закончились. Ждите новые уровни." :
             "Проблема с загрузкой уровней.";
-        float y = 40, h_element = y * dpiScreenDev96;
+
         var label_style = GUI.skin.label;
         label_style.alignment = TextAnchor.MiddleCenter;
-        GUI.Label(new Rect(0, y, windowRect.width, h_element), label_text);
-        y += 1 + h_element;
+        int sizefont = (int)(12 * dpiScreenDev96);
+        label_style.fontSize = sizefont;
+
+        GUI.Label(new Rect(0, 10, windowRect.width, h_element_dialog), label_text);
+
+        float y = 1 + h_element_dialog;
         var button_style = GUI.skin.button;
         button_style.alignment = TextAnchor.MiddleCenter;
-        if (GUI.Button(new Rect(0, y, windowRect.width, h_element), "Главное меню".ToString()))
+        button_style.fontSize = sizefont;
+
+        if (GUI.Button(new Rect(0, y, windowRect.width, h_element_dialog), "Главное меню".ToString()))
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-        y += 1 + h_element;
-        if (GUI.Button(new Rect(0, y, windowRect.width, h_element), "Выход".ToString()))
+
+        y += 1 + h_element_dialog;
+
+        if (GUI.Button(new Rect(0, y, windowRect.width, h_element_dialog), "Выход".ToString()))
             Application.Quit();
     }
 
@@ -91,16 +103,17 @@ public class InformationScreen : MonoBehaviour {
         showGUIInfoWinAndGameOver();
         switch (reslvl)
         {
-            case StaticInformation.LevelXml.Reslvl.Ok:
-                break;
             case StaticInformation.LevelXml.Reslvl.No_Lvl:
                 stopGameBesuseNotLevelCoutNull();
                 break;
             case StaticInformation.LevelXml.Reslvl.End_lvl:
                 stopGameBesauseEndLvl();
                 break;
-            default:
-                break;
         }
+    }
+
+    void OnApplicationQuit()
+    {
+        SettingsApplication.Save();
     }
 }

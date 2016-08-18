@@ -41,6 +41,7 @@ public class SettingsApplication : MonoBehaviour
         return loadSetting;
     }
 
+#if UNITY_EDITOR == true || UNITY_STANDALONE == true
     /// <summary>
     /// Создает новый файл настроек в папке с приложением, если его нет
     /// </summary>
@@ -50,6 +51,7 @@ public class SettingsApplication : MonoBehaviour
     {
         return (createFile(filepath, win, game_over));
     }
+
 
     /// <summary>
     /// Создает новый файл настроек в папке с приложением, если его нет
@@ -70,19 +72,6 @@ public class SettingsApplication : MonoBehaviour
         }
         try
         {
-            /*var line = new object[]
-                {
-                        "<saveFileApplication>",
-                        string.Format("   <WIN>{0}</WIN>", win),
-                        string.Format("   <GAMEOVER>{0}</GAMEOVER>", game_over),
-                        "</saveFileApplication>"
-                };
-            System.Xml.XmlDocument doc = new System.Xml.XmlDocument();
-            string one_line = string.Format("{0}\n{1}\n{2}\n{3}", line);
-            Debug.Log("one line create");
-            doc.LoadXml(one_line);
-            Debug.Log("doc create loaded");*/
-
             System.IO.Stream stream = new System.IO.MemoryStream();
 
             var mass_tmp = BitConverter.GetBytes(win);
@@ -96,10 +85,8 @@ public class SettingsApplication : MonoBehaviour
             stream = getStreamReverse(stream);
             System.IO.FileStream fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
             FileStreamWriteFromOtherStreamData(fs, stream);
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
             stream.Close();
             fs.Close();
-#endif
             stream.Dispose();
             fs.Dispose();
             Debug.Log("return true");
@@ -174,14 +161,14 @@ public class SettingsApplication : MonoBehaviour
         else
             return absoluteUrlApplicationFileSetting;
     }
-
+#endif
     /// <summary>
     /// Загружает файл настроек с диска в память
     /// </summary>
     public static void loadSettingFile()
     {
         loadSetting = false;
-#if UNITY_EDITOR_WIN == true || UNITY_STANDALONE == true
+#if UNITY_EDITOR == true || UNITY_STANDALONE == true
         loadSettingFileWindowsSystemMetod();
 #else
         loadSettingFileOther();
@@ -189,6 +176,7 @@ public class SettingsApplication : MonoBehaviour
         loadSetting = true;
     }
 
+#if UNITY_EDITOR == false && UNITY_STANDALONE == false
     private static void loadSettingFileOther()
     {
         win = PlayerPrefs.GetInt("win", 0);
@@ -210,6 +198,7 @@ public class SettingsApplication : MonoBehaviour
         }
     }
 
+#else
     /// <summary>
     /// Метод загрузки файла настроек который работает на Windows System
     /// </summary>
@@ -279,6 +268,7 @@ public class SettingsApplication : MonoBehaviour
             }
         }
     }
+#endif
 
     /// <summary>
     /// Возвращает количество побед пользователя
@@ -372,7 +362,7 @@ public class SettingsApplication : MonoBehaviour
         if (saveNow == false)
         {
             saveNow = true;
-#if UNITY_EDITOR_WIN == true || UNITY_STANDALONE == true
+#if UNITY_EDITOR == true || UNITY_STANDALONE == true
             saveFuncWindowsSystem();
 #else
             saveFuncOtherSystem();
@@ -382,22 +372,7 @@ public class SettingsApplication : MonoBehaviour
         Debug.Log("end Save");
     }
 
-    private static void saveFuncOtherSystem()
-    {
-        PlayerPrefs.SetInt("win", win);
-        PlayerPrefs.SetInt("game_over", game_over);
-        int n = saveQuestNumberWin.Count;
-        if (n > 0)
-        {
-            string quest = ""; n = n - 1;
-            for (int i = 0; i < n; i++)
-                quest += saveQuestNumberWin[i].ToString() + ",";
-            quest += saveQuestNumberWin[n].ToString();
-            PlayerPrefs.SetString("quest_win", quest);
-        }
-        PlayerPrefs.Save();
-    }
-
+#if UNITY_EDITOR == true || UNITY_STANDALONE == true
     private static bool saveFuncWindowsSystem()
     {
         string filepath = getFileSettingsPath();
@@ -417,10 +392,8 @@ public class SettingsApplication : MonoBehaviour
             stream = getStreamReverse(stream);
             var fs = new System.IO.FileStream(filepath, System.IO.FileMode.Create, System.IO.FileAccess.Write);
             FileStreamWriteFromOtherStreamData(fs, stream);
-#if UNITY_WSA == false
             stream.Close();
             fs.Close();
-#endif
             stream.Dispose();
             fs.Dispose();
             return true;
@@ -430,6 +403,24 @@ public class SettingsApplication : MonoBehaviour
             Debug.Log(ex.Message);
             return false;
         }
-
     }
+#else
+    private static void saveFuncOtherSystem()
+    {
+        PlayerPrefs.SetInt("win", win);
+        PlayerPrefs.Save();
+        PlayerPrefs.SetInt("game_over", game_over);
+        PlayerPrefs.Save();
+        int n = saveQuestNumberWin.Count;
+        if (n > 0)
+        {
+            string quest = ""; n = n - 1;
+            for (int i = 0; i < n; i++)
+                quest += saveQuestNumberWin[i].ToString() + ",";
+            quest += saveQuestNumberWin[n].ToString();
+            PlayerPrefs.SetString("quest_win", quest);
+        }
+        PlayerPrefs.Save();
+    }
+#endif
 }

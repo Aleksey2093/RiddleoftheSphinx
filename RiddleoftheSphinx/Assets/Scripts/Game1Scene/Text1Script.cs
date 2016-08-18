@@ -22,6 +22,7 @@ public class Text1Script : MonoBehaviour {
 
     private Text textQuest;
     private Text[] buttonsAnswers = new Text[4];
+    private Animator animator_textQuest;
 
     // Use this for initialization
     void Start()
@@ -33,6 +34,7 @@ public class Text1Script : MonoBehaviour {
         try
         {
             textQuest = GameObject.Find("TextQuest").GetComponent<Text>();
+            animator_textQuest = textQuest.GetComponent<Animator>();
             for (int i = 0; i < 4; i++)
                 buttonsAnswers[i] = GameObject.Find(string.Format("Button{0}", (i + 1))).transform.GetComponentInChildren<Text>();
             nextLevel();
@@ -41,53 +43,39 @@ public class Text1Script : MonoBehaviour {
         catch(Exception ex)
         {
             Debug.Log("Start text1script error: " + ex.Message);
+            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
         }
     }
 
     public void provAnswerClickButton(string answer)
     {
         if (answer_true == answer)
-        {
-            nextLevel();
-        }
-        else
-        {
-            SettingsApplication.addGameOver();
-        }
+                SettingsApplication.addWin(nowlvl);
+            else
+                SettingsApplication.addGameOver();
+        nextLevel();
     }
 
     void nextLevel()
     {
-        double i = 0;
-        while(StaticInformation.downloaddonelevels == false)
+        float time1 = UnityEngine.Time.time;
+        while (StaticInformation.downloaddonelevels == false)
         {
-            double res;
-            res = i % 100;
-            if (res == 0)
-            {
-                if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
-                {
-                    if (StaticInformation.LevelXml.loadDataFromFileFromSite())
-                    {
-                        break;
-                    }
-                }
-            }
-            else if (i > 1000 && StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
-            {
+            float time2 = UnityEngine.Time.time;
+            if (StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false
+                && StaticInformation.LevelXml.loadDataFromFileFromSite())
+                break;
+            else if (time2 > time1 && StaticInformation.LevelXml.LoadDataFileNowFromSite_get() == false)
                 UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
-            }
-            i++;
         }
-        var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl,true);
+        var level_info = StaticInformation.LevelXml.getNextLevel(nowlvl);
         switch (level_info.get_Message())
         {
             case StaticInformation.LevelXml.Reslvl.Ok:
                 {
                     try
                     {
-                        Animator animator = textQuest.GetComponent<Animator>();
-                        animator.SetBool("Povorot", true);
+                        animator_textQuest.SetBool("Povorot", true);
                     }
                     catch (UnityEngine.UnityException ex)
                     {
@@ -98,6 +86,7 @@ public class Text1Script : MonoBehaviour {
                         Debug.Log(ex.Message);
                     }
                     setValueOnTextAndButtons(level_info.get_Info());
+                    //StartCoroutine("setValueOnTextAndButtons", level_info.get_Info());
                 }
                 break;
             case StaticInformation.LevelXml.Reslvl.No_Lvl:
@@ -123,7 +112,7 @@ public class Text1Script : MonoBehaviour {
     /// Устанавливает значение объектов сцены
     /// </summary>
     /// <param name="level_info">Информация об уровне</param>
-    private void setValueOnTextAndButtons(StaticInformation.LevelXml.LevelInformation level_info)
+    void setValueOnTextAndButtons(StaticInformation.LevelXml.LevelInformation level_info)
     {
         if (textQuest != null && Array.TrueForAll(buttonsAnswers, x=> x != null))
         {
@@ -135,6 +124,7 @@ public class Text1Script : MonoBehaviour {
         }
         else
             Debug.Log("Error in setValue.... Text1Script");
+        //yield return null;
     }
 
 
@@ -146,9 +136,4 @@ public class Text1Script : MonoBehaviour {
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync("Menu");
         }
 	}
-
-    void OnApplicationQuit ()
-    {
-        SettingsApplication.Save();
-    }
 }
